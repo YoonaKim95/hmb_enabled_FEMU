@@ -110,7 +110,10 @@ typedef struct NvmeFeatureVal {
         uint16_t temp_thresh_hi;
         uint16_t temp_thresh_low;
     };
-    uint32_t    async_config;
+
+	uint32_t host_memory_buffer;
+	
+	uint32_t    async_config;
     uint32_t    vwc;
 } NvmeFeatureVal;
 
@@ -155,6 +158,15 @@ typedef struct NvmeCtrl {
     NvmeCQueue      admin_cq;
     NvmeIdCtrl      id_ctrl;
     NvmeFeatureVal  features;
+
+
+	// {HMB}
+    void            *heap_storage;
+	// HmbCtrl *hmb_ctrl;
+
+
+
+
 } NvmeCtrl;
 
 static inline NvmeNamespace *nvme_ns(NvmeCtrl *n, uint32_t nsid)

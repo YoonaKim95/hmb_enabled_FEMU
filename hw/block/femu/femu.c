@@ -3,6 +3,15 @@
 
 #include "./nvme.h"
 
+#include "bbssd/hmb.h" /* HMB: for supporting HMB caching */
+#include "bbssd/hmb_spaceMgmt.h" /* HMB: for supporting HMB caching */
+#include "bbssd/hmb_utils.h" /* HMB: for supporting HMB caching */
+#include "bbssd/hmb_types.h" /* HMB: for supporting HMB caching */
+#include <sys/mman.h> /* HMB: mlock() and munlock() */
+#include <stdint.h>
+
+
+
 #define NVME_SPEC_VER (0x00010400)
 
 static void nvme_clear_ctrl(FemuCtrl *n, bool shutdown)
@@ -416,6 +425,36 @@ static void nvme_init_ctrl(FemuCtrl *n)
     id->psd[0].mp    = cpu_to_le16(0x9c4);
     id->psd[0].enlat = cpu_to_le32(0x10);
     id->psd[0].exlat = cpu_to_le32(0x4);
+
+
+
+
+	// [YA-HMB]
+                                                                                      	
+	// id->hmpre = cpu_to_le32(2048);  /* HMB: Preferred size is 8MB */
+	//id->hmpre = cpu_to_le32(8192);  /* HMB: Preferred size is 32MB */
+	id->hmpre = cpu_to_le32(16384);  /* HMB: Preferred size is 64MB */
+	// id->hmpre = cpu_to_le32(32768);  /* HMB: Preferred size is 128MB */
+	//id->hmpre = cpu_to_le32(65536);  /* HMB: Preferred size is 256MB */
+	//id->hmpre = cpu_to_le32(131072); /* HMB: Preferred size is 512MB */
+	//id->hmpre = cpu_to_le32(262144); /* HMB: Preferred size is 1GB */
+	//id->hmpre = cpu_to_le32(524288); /* HMB: Preferred size is 2GB */
+	//id->hmpre = cpu_to_le32(786432); /* HMB: Preferred size is 3GB */	
+	// id->hmpre = cpu_to_le32(1048576);  // HMB: Preferred size is 4GB 
+	id->hmmin = cpu_to_le32(0);     /* HMB: Minumim size is not limited (i.e. 0). */  
+
+	if(hmb_init(&n->parent_obj, (void *)n) == false)
+	{
+		hmb_debug("Failed to initalize Host Memory Buffer.");
+	}
+	else
+	{
+		hmb_debug("Succeed to initialize Host Memory buffer!");
+		hmb_debug("  - HMPRE: %d, HMMIN: %d", id->hmpre, id->hmmin);
+	}
+	/** HMB: end **/
+
+
 
     n->features.arbitration     = 0x1f0f0706;
     n->features.power_mgmt      = 0;

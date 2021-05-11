@@ -1,4 +1,10 @@
 #include "./nvme.h"
+#include "bbssd/hmb.h" /* HMB: for supporting HMB caching */
+#include "bbssd/hmb_spaceMgmt.h" /* HMB: for supporting HMB caching */
+#include "bbssd/hmb_utils.h" /* HMB: for supporting HMB caching */
+#include "bbssd/hmb_types.h" /* HMB: for supporting HMB caching */
+#include <sys/mman.h> /* HMB: mlock() and munlock() */
+
 
 #define NVME_IDENTIFY_DATA_SIZE 4096
 
@@ -14,7 +20,9 @@ static const bool nvme_feature_support[NVME_FID_MAX] = {
     [NVME_INTERRUPT_VECTOR_CONF]    = true,
     [NVME_WRITE_ATOMICITY]          = true,
     [NVME_ASYNCHRONOUS_EVENT_CONF]  = true,
+    [NVME_HOST_MEMORY_BUFFER]		= true,
     [NVME_TIMESTAMP]                = true,
+	
 };
 #endif
 
@@ -616,7 +624,19 @@ static uint16_t nvme_set_feature(FemuCtrl *n, NvmeCmd *cmd, NvmeCqe *cqe)
     uint64_t prp1 = le64_to_cpu(cmd->dptr.prp1);
     uint64_t prp2 = le64_to_cpu(cmd->dptr.prp2);
 
-    switch (dw10) {
+//#ifdef HMB_ENABLED
+	/* [1] HMB: Data to be used in enabling or disabling HMB */
+    uint32_t dw12 = le32_to_cpu(cmd->cdw12);
+    uint32_t dw13 = le32_to_cpu(cmd->cdw13);
+    uint32_t dw14 = le32_to_cpu(cmd->cdw14);
+    uint32_t dw15 = le32_to_cpu(cmd->cdw15);
+/* [1] end */
+//#endif
+
+
+	printf("nvme_set_feature: %d \n", dw10);
+    
+	switch (dw10) {
     case NVME_ARBITRATION:
         cqe->n.result = cpu_to_le32(n->features.arbitration);
         n->features.arbitration = dw11;
@@ -667,7 +687,28 @@ static uint16_t nvme_set_feature(FemuCtrl *n, NvmeCmd *cmd, NvmeCqe *cqe)
     case NVME_ASYNCHRONOUS_EVENT_CONF:
         n->features.async_config = dw11;
         break;
-    case NVME_SOFTWARE_PROGRESS_MARKER:
+// #ifdef HMB_ENABLED
+	/** HMB: for supporting Host Memory Buffer **/
+	case NVME_HOST_MEMORY_BUFFER:
+		{
+			uint64_t t = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
+			if(!hmb_enable(n->page_size, dw11, dw12, dw13, dw14, dw15))
+			{    
+				hmb_debug("Failed to initialize Host Memory Buffer.");
+				n->features.host_memory_buffer = 0x0;
+			}    
+			else
+			{
+				n->features.host_memory_buffer = 0x1;
+			}
+			t = qemu_clock_get_ns(QEMU_CLOCK_REALTIME) - t;
+			hmb_debug("Elapsed time: %lf", (double)t / 1E9);
+		}
+		break; 
+	/** HMB: end**/
+//#endif
+	
+	case NVME_SOFTWARE_PROGRESS_MARKER:
         n->features.sw_prog_marker = dw11;
         break;
     default:

@@ -243,6 +243,7 @@ static void ssd_init_params(struct ssdparams *spp)
     spp->luns_per_ch = 8;
     spp->nchs = 8;
 
+    spp->mp_rd_lat = NAND_READ_LATENCY;
     spp->pg_rd_lat = NAND_READ_LATENCY;
     spp->pg_wr_lat = NAND_PROG_LATENCY;
     spp->blk_er_lat = NAND_ERASE_LATENCY;
@@ -775,7 +776,7 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
 
     /* normal IO read path */
     for (lpn = start_lpn; lpn <= end_lpn; lpn++) {
-        ppa = get_maptbl_ent(ssd, lpn);
+		ppa = get_maptbl_ent(ssd, lpn);
         if (!mapped_ppa(&ppa) || !valid_ppa(ssd, &ppa)) {
             //printf("%s,lpn(%" PRId64 ") not mapped to valid ppa\n", ssd->ssdname, lpn);
             //printf("Invalid ppa,ch:%d,lun:%d,blk:%d,pl:%d,pg:%d,sec:%d\n",
@@ -787,7 +788,20 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
         srd.type = USER_IO;
         srd.cmd = NAND_READ;
         srd.stime = req->stime;
+
         sublat = ssd_advance_status(ssd, &ppa, &srd);
+/*
+		// chk if lpn is cached to HMB
+		if (HMB_mapping_table_cache[lpn] != 1) { // not mapped to HMB 
+
+			// cache the corresponding LPN list to HMB 
+		
+
+
+			sublat+= spp->mp_rd_lat; 
+		} 
+			
+*/		
         maxlat = (sublat > maxlat) ? sublat : maxlat;
     }
 

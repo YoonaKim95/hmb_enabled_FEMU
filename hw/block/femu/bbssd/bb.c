@@ -38,6 +38,7 @@ static void bb_flip(FemuCtrl *n, NvmeCmd *cmd)
         femu_log("%s,FEMU GC Delay Emulation [Disabled]!\n", n->devname);
         break;
     case FEMU_ENABLE_DELAY_EMU:
+        ssd->sp.mp_rd_lat = NAND_READ_LATENCY;
         ssd->sp.pg_rd_lat = NAND_READ_LATENCY;
         ssd->sp.pg_wr_lat = NAND_PROG_LATENCY;
         ssd->sp.blk_er_lat = NAND_ERASE_LATENCY;

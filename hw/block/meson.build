@@ -14,7 +14,18 @@ softmmu_ss.add(when: 'CONFIG_SWIM', if_true: files('swim.c'))
 softmmu_ss.add(when: 'CONFIG_XEN', if_true: files('xen-block.c'))
 softmmu_ss.add(when: 'CONFIG_SH4', if_true: files('tc58128.c'))
 softmmu_ss.add(when: 'CONFIG_NVME_PCI', if_true: files('nvme.c', 'nvme-ns.c'))
-softmmu_ss.add(when: 'CONFIG_FEMU_PCI', if_true: files('femu/dma.c', 'femu/intr.c', 'femu/nvme-util.c', 'femu/nvme-admin.c', 'femu/nvme-io.c', 'femu/femu.c', 'femu/nossd/nop.c', 'femu/nand/nand.c', 'femu/timing-model/timing.c', 'femu/ocssd/oc12.c', 'femu/ocssd/oc20.c', 'femu/zns/zns.c', 'femu/bbssd/bb.c', 'femu/bbssd/ftl.c', 'femu/lib/pqueue.c', 'femu/lib/rte_ring.c', 'femu/backend/dram.c'))
+softmmu_ss.add(when: 'CONFIG_FEMU_PCI', if_true: files('femu/dma.c', 'femu/intr.c', 'femu/nvme-util.c', 'femu/nvme-admin.c', 'femu/nvme-io.c', 'femu/femu.c', 'femu/nossd/nop.c', 'femu/nand/nand.c', 'femu/timing-model/timing.c', 'femu/ocssd/oc12.c', 'femu/ocssd/oc20.c', 'femu/zns/zns.c', 
+			
+			'femu/bbssd/bb.c', 'femu/bbssd/ftl.c', 
+			'femu/bbssd/hmb.c',
+			'femu/bbssd/hmb_debug.c',
+			'femu/bbssd/hmb_internal.c',
+			'femu/bbssd/hmb_spaceMgmt.c',
+			'femu/bbssd/hmb_utils.c',
+			
+		
+			
+			'femu/lib/pqueue.c', 'femu/lib/rte_ring.c', 'femu/backend/dram.c'))
 
 specific_ss.add(when: 'CONFIG_VIRTIO_BLK', if_true: files('virtio-blk.c'))
 specific_ss.add(when: 'CONFIG_VHOST_USER_BLK', if_true: files('vhost-user-blk.c'))

@@ -794,6 +794,10 @@ typedef struct NvmeFeatureVal {
     uint32_t    write_atomicity;
     uint32_t    async_config;
     uint32_t    sw_prog_marker;
+
+
+	uint32_t    host_memory_buffer; /* HMB: for supporting HMB */
+
 } NvmeFeatureVal;
 
 #define NVME_ARB_AB(arb)        (arb & 0x7)
@@ -818,7 +822,9 @@ enum NvmeFeatureIds {
     NVME_INTERRUPT_VECTOR_CONF      = 0x9,
     NVME_WRITE_ATOMICITY            = 0xa,
     NVME_ASYNCHRONOUS_EVENT_CONF    = 0xb,
-    NVME_TIMESTAMP                  = 0xe,
+	NVME_HOST_MEMORY_BUFFER			= 0xd, 	
+	
+	NVME_TIMESTAMP                  = 0xe,
     NVME_SOFTWARE_PROGRESS_MARKER   = 0x80,
     NVME_FID_MAX                    = 0x100
 };
@@ -1278,6 +1284,9 @@ typedef struct FemuCtrl {
 	uint64_t		eis_addr;
     uint64_t        dbs_addr_hva;
     uint64_t        eis_addr_hva;
+
+
+
 
     uint8_t         femu_mode;
     uint8_t         lver; /* Coperd: OCSSD version, 0x1 -> OC1.2, 0x2 -> OC2.0 */

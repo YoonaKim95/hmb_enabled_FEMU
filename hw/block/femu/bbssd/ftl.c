@@ -1,4 +1,10 @@
 #include "ftl.h"
+#include "hmb.h"
+#include "hmb_internal.h"
+#include "hmb_types.h"
+#include "hmb_utils.h"
+#include "hmb_spaceMgmt.h" /* for HMB_HAS_NO_ENTRY in hmb_meta_init() */
+
 
 //#define FEMU_DEBUG_FTL
 
@@ -13,6 +19,18 @@ static inline bool should_gc_high(struct ssd *ssd)
 {
     return (ssd->lm.free_line_cnt <= ssd->sp.gc_thres_lines_high);
 }
+
+static inline void set_hmb_cache(struct ssd *ssd, int entry, int i)
+{
+    ssd->hmb_cache_bm[entry] = i;
+}
+
+
+static inline uint8_t hmb_cached(struct ssd *ssd, int entry)
+{
+    return ssd->hmb_cache_bm[entry];
+}
+
 
 static inline struct ppa get_maptbl_ent(struct ssd *ssd, uint64_t lpn)
 {
@@ -233,7 +251,7 @@ static void check_params(struct ssdparams *spp)
     //ftl_assert(is_power_of_2(spp->nchs));
 }
 
-static void ssd_init_params(struct ssdparams *spp)
+static void ssd_init_params(struct ssdparams *spp, struct ssd *ssd)
 {
     spp->secsz = 512;
     spp->secs_per_pg = 8;
@@ -260,6 +278,10 @@ static void ssd_init_params(struct ssdparams *spp)
     spp->pgs_per_lun = spp->pgs_per_pl * spp->pls_per_lun;
     spp->pgs_per_ch = spp->pgs_per_lun * spp->luns_per_ch;
     spp->tt_pgs = spp->pgs_per_ch * spp->nchs;
+
+	/*YA hmb*/
+	spp->hmb_lpas_per_blk = (4096 * 8 ) / ssd->addr_bits ;
+	printf("hmb lpas per blk: %d\n", spp->hmb_lpas_per_blk);
 
     spp->blks_per_lun = spp->blks_per_pl * spp->pls_per_lun;
     spp->blks_per_ch = spp->blks_per_lun * spp->luns_per_ch;
@@ -350,6 +372,25 @@ static void ssd_init_maptbl(struct ssd *ssd)
     }
 }
 
+static void ssd_init_hmb_cache(struct ssd *ssd)
+{
+    struct ssdparams *spp = &ssd->sp;
+
+	int available_entries = (spp->tt_pgs) / (spp->hmb_lpas_per_blk); 
+	hmb_debug("available entries %u ", available_entries);
+
+    ssd->hmb_cache_bm = g_malloc0(sizeof(int) * (spp->tt_pgs / spp->hmb_lpas_per_blk) );
+    
+	for (int i = 0; i < available_entries ; i++) {
+        ssd->hmb_cache_bm[i] = 0;    
+
+		// printf("hmb cache bm [%d]: %d\n", i, ssd->hmb_cache_bm[i]);
+	}
+
+	ssd->nr_hmb_cache = HMB_CTRL.FTL_free_mappings; 
+}
+
+
 static void ssd_init_rmap(struct ssd *ssd)
 {
     struct ssdparams *spp = &ssd->sp;
@@ -366,8 +407,11 @@ void ssd_init(FemuCtrl *n)
     struct ssdparams *spp = &ssd->sp;
 
     ftl_assert(ssd);
+	
+	// 32bits for mapping 	
+	ssd->addr_bits = 32;
 
-    ssd_init_params(spp);
+    ssd_init_params(spp, ssd);
 
     /* initialize ssd internal layout architecture */
     ssd->ch = g_malloc0(sizeof(struct ssd_channel) * spp->nchs);
@@ -375,11 +419,17 @@ void ssd_init(FemuCtrl *n)
         ssd_init_ch(&ssd->ch[i], spp);
     }
 
+
+
+
     /* initialize maptbl */
     ssd_init_maptbl(ssd);
 
     /* initialize rmap */
-    ssd_init_rmap(ssd);
+	ssd_init_rmap(ssd);
+
+	 /* initialize rmap */
+    ssd_init_hmb_cache(ssd);
 
     /* initialize all the lines */
     ssd_init_lines(ssd);
@@ -387,6 +437,12 @@ void ssd_init(FemuCtrl *n)
     /* initialize write pointer, this is how we allocate new pages for writes */
     ssd_init_write_pointer(ssd);
 
+
+	// hmb_debug("possible caching entries: %u ", (spp->tt_pgs * ssd->addr_bits) / (HMB_CTRL.page_size * 8));	
+
+
+
+	printf("ssd init done");
     qemu_thread_create(&ssd->ftl_thread, "FEMU-FTL-Thread", ftl_thread, n,
                        QEMU_THREAD_JOINABLE);
 }
@@ -454,7 +510,7 @@ static inline struct nand_page *get_pg(struct ssd *ssd, struct ppa *ppa)
 }
 
 static uint64_t ssd_advance_status(struct ssd *ssd, struct ppa *ppa, struct
-        nand_cmd *ncmd)
+        nand_cmd *ncmd, int hmb_cached)
 {
     int c = ncmd->cmd;
     uint64_t cmd_stime = (ncmd->stime == 0) ? \
@@ -469,7 +525,10 @@ static uint64_t ssd_advance_status(struct ssd *ssd, struct ppa *ppa, struct
         /* read: perform NAND cmd first */
         nand_stime = (lun->next_lun_avail_time < cmd_stime) ? cmd_stime : \
                      lun->next_lun_avail_time;
-        lun->next_lun_avail_time = nand_stime + spp->pg_rd_lat;
+        if(hmb_cached == 1)
+			lun->next_lun_avail_time = nand_stime + spp->pg_rd_lat;
+		else
+			lun->next_lun_avail_time = nand_stime + spp->pg_rd_lat + spp->mp_rd_lat;
         lat = lun->next_lun_avail_time - cmd_stime;
 #if 0
         lun->next_lun_avail_time = nand_stime + spp->pg_rd_lat;
@@ -615,7 +674,7 @@ static void gc_read_page(struct ssd *ssd, struct ppa *ppa)
         gcr.type = GC_IO;
         gcr.cmd = NAND_READ;
         gcr.stime = 0;
-        ssd_advance_status(ssd, ppa, &gcr);
+        ssd_advance_status(ssd, ppa, &gcr, 0);   // TODO NEED TO CHK HMB CACHE 
     }
 }
 
@@ -643,7 +702,7 @@ static uint64_t gc_write_page(struct ssd *ssd, struct ppa *old_ppa)
         gcw.type = GC_IO;
         gcw.cmd = NAND_WRITE;
         gcw.stime = 0;
-        ssd_advance_status(ssd, &new_ppa, &gcw);
+        ssd_advance_status(ssd, &new_ppa, &gcw, 0);
     }
 
     /* advance per-ch gc_endtime as well */
@@ -746,7 +805,7 @@ static int do_gc(struct ssd *ssd, bool force)
                 gce.type = GC_IO;
                 gce.cmd = NAND_ERASE;
                 gce.stime = 0;
-                ssd_advance_status(ssd, &ppa, &gce);
+                ssd_advance_status(ssd, &ppa, &gce, 0);
             }
 
             lunp->gc_endtime = lunp->next_lun_avail_time;
@@ -770,6 +829,9 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
     uint64_t lpn;
     uint64_t sublat, maxlat = 0;
 
+	// HMB cache 
+	int hmb_cache_entry = 0;
+
     if (end_lpn >= spp->tt_pgs) {
         ftl_err("start_lpn=%"PRIu64",tt_pgs=%d\n", start_lpn, ssd->sp.tt_pgs);
     }
@@ -788,22 +850,35 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
         srd.type = USER_IO;
         srd.cmd = NAND_READ;
         srd.stime = req->stime;
-
-        sublat = ssd_advance_status(ssd, &ppa, &srd);
-/*
-		// chk if lpn is cached to HMB
-		if (HMB_mapping_table_cache[lpn] != 1) { // not mapped to HMB 
-
-			// cache the corresponding LPN list to HMB 
 		
+		// uint32_t HMB_free_mappings = HMB_CTRL.FTL_free_mappings; 
+		// hmb_debug("free mapping slots: %u ", HMB_free_mappings);
+		
+		hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;	
+		hmb_debug("HMB cache entry: %u ", hmb_cache_entry);
+		// chk if lpn is cached to HMB
+		if (hmb_cached(ssd, hmb_cache_entry) == 0) { // not mapped to HMB 
 
-
-			sublat+= spp->mp_rd_lat; 
-		} 
+			hmb_debug("HMB cache entry: %u not cached ", hmb_cache_entry);
 			
-*/		
+			//	sublat = ssd_advance_status(ssd, &ppa, &srd, 0);
+			// cache the corresponding LPN list to HMB
+	
+			sublat = ssd_advance_status(ssd, &ppa, &srd, 0);  // cahced  
+
+			if(ssd->nr_hmb_cache > 0) {
+				ssd->nr_hmb_cache--; 
+				set_hmb_cache(ssd, hmb_cache_entry, 1); 
+			} else {
+				// lru evict entry and add
+
+			}
+		} else {
+			sublat = ssd_advance_status(ssd, &ppa, &srd, 1);  // cahced 	
+		}
+		
         maxlat = (sublat > maxlat) ? sublat : maxlat;
-    }
+    } 
 
     return maxlat;
 }
@@ -837,7 +912,13 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
             /* update old page information first */
             mark_page_invalid(ssd, &ppa);
             set_rmap_ent(ssd, INVALID_LPN, &ppa);
-        }
+        
+			// chk hmb cached info and makr dirty	
+			int hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;	
+			if (hmb_cached(ssd, hmb_cache_entry) == 1) { // mapping mapped to HMB 
+				set_hmb_cache(ssd, hmb_cache_entry, 0); 
+			}
+		}
 
         /* new write */
         ppa = get_new_page(ssd);
@@ -856,7 +937,7 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
         swr.cmd = NAND_WRITE;
         swr.stime = req->stime;
         /* get latency statistics */
-        curlat = ssd_advance_status(ssd, &ppa, &swr);
+        curlat = ssd_advance_status(ssd, &ppa, &swr, 0);
         maxlat = (curlat > maxlat) ? curlat : maxlat;
     }
 

@@ -95,9 +95,11 @@ uint32_t hmb_segEnt_get_max_cnt(void)
 	 */
 
 
-	hmb_debug("seg cnt : %u", (HMB_CTRL.size - HMB_OFFSET_SEG0_METADATA) / (cache_size + sizeof(HmbSegEnt)));
-	hmb_debug("size of seg entry : %u",  sizeof(HmbSegEnt));
-	return (HMB_CTRL.size - HMB_OFFSET_SEG0_METADATA) / (cache_size + sizeof(HmbSegEnt));
+	// hmb_debug("seg cnt : %u", (HMB_CTRL.size - HMB_OFFSET_SEG0_METADATA) / (cache_size + sizeof(HmbSegEnt)));
+	// hmb_debug("size of seg entry : %u",  sizeof(HmbSegEnt));
+	hmb_debug ("segEnt max cnt: %u ", ((HMB_CTRL.size) / (HMB_CTRL.page_size)));
+	return (HMB_CTRL.size) / (HMB_CTRL.page_size);
+	//return (HMB_CTRL.size - HMB_OFFSET_SEG0_METADATA) / (cache_size + sizeof(HmbSegEnt));
 	// return seg0_size * 0.1 / sizeof(HmbSegEnt); /* 5% of 0th segment's size  */
 	//return (seg0_size * 0.1 < 32768) ? seg0_size * 0.1 : 32768; /* min(seg0's size * 10%, 64K) */
 }
@@ -384,10 +386,131 @@ bool hmb_seg_update_max_allocable_size(HmbSeg *segment)
 		}
 	}
 	segment->size_allocable_max = max;
-	//hmb_debug("New max. allocable size: %llu", max);
+	hmb_debug("Seg %u  New max. allocable size: %llu",segment->id,  max);
 
 	return true;
 }
+///////////////////////////////////
+// YA FTL_MAP_INFO
+Hmb_FTL_MapInfo *hmb_FTL_mapInfo_new(void)
+{
+	return (Hmb_FTL_MapInfo *)calloc(1, sizeof(Hmb_FTL_MapInfo));
+}
+
+void hmb_FTL_mapInfo_free(Hmb_FTL_MapInfo *target)
+{
+	free(target);
+}
+
+
+bool hmb_FTL_mapInfo_insert(Hmb_FTL_MapInfo *target)
+{
+	int64_t hashed;
+	Hmb_FTL_MapInfo *head;
+	
+	if((hashed = hmb_FTL_mapInfo_get_hashed_idx_by_obj(target)) < 0)
+	{
+		hmb_debug("Invalid argument");
+		return false;
+	}
+
+	if((head = HMB_CTRL.FTL_mappings[hashed]) == NULL)
+	{
+		HMB_CTRL.FTL_mappings[hashed] = target;
+		target->next = target->prev = target;
+	}
+
+	else
+	{
+		Hmb_FTL_MapInfo *tail = head->prev;
+		
+		tail->next = target;
+		head->prev = target;
+
+		target->next = head;
+		target->prev = tail;
+	}
+
+	return true;
+}
+
+/** [1] Function for removing 'target' from the list **/
+bool hmb_FTL_mapInfo_delete(Hmb_FTL_MapInfo *target)
+{
+	int64_t hashed;
+	Hmb_FTL_MapInfo *head;
+
+	if((hashed = hmb_FTL_mapInfo_get_hashed_idx_by_obj(target)) < 0)
+	{
+		hmb_debug("Invalid argument.");
+		return false;
+	}
+
+	if((head = HMB_CTRL.FTL_mappings[hashed]) == NULL)
+	{
+		hmb_debug("Invalid relationship.");
+		return false;
+	}
+
+	if(target == head)
+	{
+		if(target == target->next) /* If the mapping list has just one entry, */
+		{
+			HMB_CTRL.FTL_mappings[hashed] = NULL;
+			return true;
+		}
+		else
+		{
+			HMB_CTRL.FTL_mappings[hashed] = target->next;
+		}
+	}
+
+	target->prev->next = target->next;
+	target->next->prev = target->prev;
+
+	return true;
+}
+/** [1] **/
+
+Hmb_FTL_MapInfo *hmb_FTL_mapInfo_search(HmbMappedAddr *addr)
+{
+	int64_t hashed;
+	Hmb_FTL_MapInfo *target;
+
+	if((hashed = hmb_FTL_mapInfo_get_hashed_idx_by_mapped_addr(addr)) < 0)
+	{
+		hmb_debug("Invalid argument.");
+		return NULL;
+	}
+
+	if((target = HMB_CTRL.FTL_mappings[hashed]) == NULL)
+	{
+		hmb_debug("It has no an entry for the mapped address.");
+		return NULL;
+	}
+	
+	do
+	{
+		if(target->addr.w == addr->w && target->addr.r == addr->r)
+		{
+			return target;
+		}
+	} while((target = target->next) != HMB_CTRL.FTL_mappings[hashed]);
+
+	return NULL;
+}
+
+int64_t hmb_FTL_mapInfo_get_hashed_idx_by_obj(Hmb_FTL_MapInfo *target)
+{
+	return hmb_hashing((uint64_t)target->addr.r, HMB_CTRL.mappings_bits);
+}
+
+int64_t hmb_FTL_mapInfo_get_hashed_idx_by_mapped_addr(HmbMappedAddr *addr)
+{
+	return hmb_hashing((uint64_t)addr->r, HMB_CTRL.mappings_bits);
+}
+/////////////////////////////////////////////
+
 
 HmbMapInfo *hmb_mapInfo_new(void)
 {
@@ -888,8 +1011,8 @@ bool hmb_segEnt_init(void)
 	int i;
 	uint64_t size_alloc, dbg_cnt_acc = 0;
 
-	HMB_CTRL.segent_mapped_size = sizeof(HmbSegEnt) * HMB_CTRL.segent_cnt_max;
-
+	// HMB_CTRL.segent_mapped_size = sizeof(HmbSegEnt) * HMB_CTRL.segent_cnt_max;
+	HMB_CTRL.segent_mapped_size = sizeof(HmbSegEnt) * ((HMB_CTRL.size ) / ( sizeof(HmbSegEnt)));
 	HMB_CTRL.segent_split_num = HMB_CTRL.list_cnt;
 	if(HMB_CTRL.segent_cnt_max % HMB_CTRL.segent_split_num)
 	{
@@ -1072,6 +1195,8 @@ bool hmb_segEnt_init(void)
 	/** [1] **/
 
 	HMB_CTRL.segent_bm_parts_num = HMB_CTRL.segent_cnt_max / HMB_SEGENT_BITMAP_BITS_PER_PART;
+	hmb_debug("segent bm parts num: %u ", HMB_CTRL.segent_bm_parts_num);
+
 	if(HMB_CTRL.segent_cnt_max % HMB_SEGENT_BITMAP_BITS_PER_PART)
 	{
 		HMB_CTRL.segent_bm_parts_num++;
@@ -1219,6 +1344,23 @@ bool hmb_mapInfo_init(uint64_t n)
 	HMB_CTRL.mappings_bits = log2(n);
 	HMB_CTRL.mappings_hashed_max = pow(2, HMB_CTRL.mappings_bits) - 1;
 
+	// YA 
+	if((HMB_CTRL.FTL_mappings = (Hmb_FTL_MapInfo **)calloc( \
+			HMB_CTRL.mappings_hashed_max+1, sizeof(Hmb_FTL_MapInfo *))) == NULL)
+	{
+		hmb_debug("Failed to allocate heap memory for \"HmbMapInfo\"");
+		return false;
+	}
+
+	for(i=0; i<=HMB_CTRL.mappings_hashed_max; i++)
+	{
+		HMB_CTRL.FTL_mappings[i] = NULL;
+	}
+
+	HMB_CTRL.FTL_free_mappings = i;
+
+
+	////
 	if((HMB_CTRL.mappings = (HmbMapInfo **)calloc( \
 			HMB_CTRL.mappings_hashed_max+1, sizeof(HmbMapInfo *))) == NULL)
 	{

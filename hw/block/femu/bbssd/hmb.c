@@ -342,11 +342,11 @@ bool hmb_init_structure(void)
 		return false;
 	}
 
-	if(hmb_spaceMgmt_init() == false)
+	/* if(hmb_spaceMgmt_init() == false)
 	{
 		hmb_debug("Failed to initialize space management parts.");
 		return false;
-	}
+	} */ 
 
 	return true;
 }
@@ -365,11 +365,11 @@ bool hmb_enable(uint32_t page_size, uint32_t dw11,
 		HMB_CTRL.mem_ret   = dw11 & 0x2; 
 
 		/* HMB: HMB Size (unit: page size) */   
-		// 16  
 		HMB_CTRL.size_pg   = dw12; 
 
 		// 64MB
 		/* HMB: HMB Size (unit: byte) */
+		// * 4kb
 		HMB_CTRL.size      = ((uint64_t)HMB_CTRL.size_pg) * page_size; 
 
 		hmb_debug("page size: %u ", page_size);
@@ -387,7 +387,7 @@ bool hmb_enable(uint32_t page_size, uint32_t dw11,
 
 		/* HMB: Host Memory Descriptor List Entry Count */
 		// HMB_CTRL.list_cnt  = dw15 - 1;             
-
+		// 64mb => 16  
 		HMB_CTRL.list_cnt  = dw15;             
 
 		HMB_CTRL.list = (HmbEntry **)calloc(HMB_CTRL.list_cnt, sizeof(HmbEntry *));

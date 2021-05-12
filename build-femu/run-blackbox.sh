@@ -25,7 +25,7 @@ sudo x86_64-softmmu/qemu-system-x86_64 \
     -device virtio-scsi-pci,id=scsi0 \
     -device scsi-hd,drive=hd0 \
     -drive file=$OSIMGF,if=none,aio=native,cache=none,format=qcow2,id=hd0 \
-    -device femu,devsz_mb=4096,femu_mode=1 \
+    -device femu,devsz_mb=16384,femu_mode=1 \
     -net user,hostfwd=tcp::8080-:22 \
     -net nic,model=virtio \
     -nographic \

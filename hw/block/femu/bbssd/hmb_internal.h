@@ -106,6 +106,25 @@ int64_t hmb_get_total_allocable_size_byte(void);
 bool hmb_seg_update_max_allocable_size(HmbSeg *segment);
 
 
+///////////////////////////////////////////////////////////////////////////////
+/** YA HMB: [1] FTL Mapping information related functions **/
+Hmb_FTL_MapInfo *hmb_FTL_mapInfo_new(void);
+void hmb_FTL_mapInfo_free(Hmb_FTL_MapInfo *target);
+
+/* HMB: Insert 'target' to the list (default action: to tail) */
+bool hmb_FTL_mapInfo_insert(Hmb_FTL_MapInfo *target); 
+/* HMB: Insert 'target' to the tail */
+bool hmb_FTL_mapInfo_insert_tail(Hmb_FTL_MapInfo *target); 
+/* HMB: Remove 'target' from the list */
+bool hmb_FTL_mapInfo_delete(Hmb_FTL_MapInfo *target); 
+/* HMB: Search a target by mapped address*/
+Hmb_FTL_MapInfo *hmb_FTL_mapInfo_search(HmbMappedAddr *addr); 
+
+int64_t hmb_FTL_mapInfo_get_hashed_idx_by_obj(Hmb_FTL_MapInfo *target);
+int64_t hmb_FTL_mapInfo_get_hashed_idx_by_mapped_addr(HmbMappedAddr *addr);
+/** [1] **/
+///////////////////////////////////////////////////////////////////////////////
+
 /** HMB: [1] Mapping information related functions **/
 HmbMapInfo *hmb_mapInfo_new(void);
 void hmb_mapInfo_free(HmbMapInfo *target);

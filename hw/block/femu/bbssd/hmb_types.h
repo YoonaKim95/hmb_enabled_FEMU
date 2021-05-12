@@ -212,6 +212,18 @@ typedef struct HmbMeta
 	uint8_t  rsvd[5];                     /* 5bytes (acc: 128) */
 } HmbMeta;
 #pragma pack(pop)
+typedef struct Hmb_FTL_MapInfo
+{
+	int32_t            lba_start;
+	int32_t            lba_end; 
+	int32_t			   entry_id; 
+	
+	
+	HmbMappedAddr      addr;
+	struct Hmb_FTL_MapInfo* prev;
+ 	struct Hmb_FTL_MapInfo* next;
+} Hmb_FTL_MapInfo;
+
 
 typedef struct HmbMapInfo
 {
@@ -259,6 +271,11 @@ typedef struct HmbCtrl {
 	HmbDLL*       segent_bm_table;
 	
 	struct HmbMapInfo** mappings;
+	
+	struct Hmb_FTL_MapInfo** FTL_mappings;
+	int FTL_free_mappings; 
+	
+	
 	uint64_t            mappings_hashed_max;
 	uint8_t             mappings_bits;
  

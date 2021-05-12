@@ -1,4 +1,4 @@
-Build started at 2021-05-10T23:45:19.008832
+Build started at 2021-05-11T23:13:09.944326
 Main binary: /usr/bin/python3
 Build Options: -Ddocdir=/usr/local/share/doc -Dqemu_firmwarepath=/usr/local/share/qemu-firmware -Dqemu_suffix=qemu -Doptimization=2 -Ddebug=true -Dwerror=true -Dstrip=true -Db_pie=true -Db_staticpic=true -Db_coverage=false -Dmalloc=system -Dmalloc_trim=auto -Dsparse=auto -Dkvm=enabled -Dhax=auto -Dwhpx=auto -Dhvf=auto -Dxen=disabled -Dxen_pci_passthrough=disabled -Dtcg=enabled -Dcocoa=auto -Dmpath=auto -Dsdl=auto -Dsdl_image=auto -Dvnc=enabled -Dvnc_sasl=auto -Dvnc_jpeg=auto -Dvnc_png=auto -Dgettext=true -Dxkbcommon=auto -Du2f=auto -Dvirtiofsd=auto -Dcapstone=auto -Dslirp=auto -Dfdt=auto -Diconv=auto -Dcurses=auto -Dlibudev=auto -Ddocs=auto -Dsphinx_build= -Dinstall_blobs=true -Dvhost_user_blk_server=auto -Dprefix=/usr/local -Dbindir=/usr/local/bin -Ddatadir=/usr/local/share -Dincludedir=/usr/local/include -Dlibdir=/usr/local/lib -Dlibexecdir=/usr/local/libexec -Dlocaledir=/usr/local/share/locale -Dlocalstatedir=/usr/local/var -Dmandir=/usr/local/share/man -Dsysconfdir=/usr/local/etc -Dbackend=ninja
 Python system: Linux
@@ -37,8 +37,8 @@ Program cgcc found: YES
 Program scripts/check_sparse.py found: YES
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Running compile:
-Working directory:  /home/yoona/femu/build-femu/meson-private/tmpwoxag2kw
-Command line:  cc /home/yoona/femu/build-femu/meson-private/tmpwoxag2kw/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpwoxag2kw/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -Wl,--start-group -lm -Wl,--end-group -Wl,--allow-shlib-undefined 
+Working directory:  /home/yoona/femu/build-femu/meson-private/tmpjl9_a_0n
+Command line:  cc /home/yoona/femu/build-femu/meson-private/tmpjl9_a_0n/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpjl9_a_0n/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -Wl,--start-group -lm -Wl,--end-group -Wl,--allow-shlib-undefined 
 
 Code:
  int main(void) { return 0; }
@@ -50,8 +50,8 @@ Compiler stderr:
 Library m found: YES
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Running compile:
-Working directory:  /home/yoona/femu/build-femu/meson-private/tmp_2n69_9t
-Command line:  cc /home/yoona/femu/build-femu/meson-private/tmp_2n69_9t/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp_2n69_9t/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -Wl,--start-group -lutil -Wl,--end-group -Wl,--allow-shlib-undefined 
+Working directory:  /home/yoona/femu/build-femu/meson-private/tmpakqvttv1
+Command line:  cc /home/yoona/femu/build-femu/meson-private/tmpakqvttv1/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpakqvttv1/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -Wl,--start-group -lutil -Wl,--end-group -Wl,--allow-shlib-undefined 
 
 Code:
  int main(void) { return 0; }
@@ -65,8 +65,8 @@ Run-time dependency appleframeworks found: NO (tried framework)
 Dependency pixman-1 found: YES 0.34.0 (cached)
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Running compile:
-Working directory:  /home/yoona/femu/build-femu/meson-private/tmpde2lfi31
-Command line:  cc /home/yoona/femu/build-femu/meson-private/tmpde2lfi31/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpde2lfi31/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -Wl,--start-group -laio -Wl,--end-group -Wl,--allow-shlib-undefined 
+Working directory:  /home/yoona/femu/build-femu/meson-private/tmpo68j1fpa
+Command line:  cc /home/yoona/femu/build-femu/meson-private/tmpo68j1fpa/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpo68j1fpa/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -Wl,--start-group -laio -Wl,--end-group -Wl,--allow-shlib-undefined 
 
 Code:
  int main(void) { return 0; }
@@ -87,8 +87,8 @@ Called `/usr/bin/pkg-config --modversion xkbcommon` -> 1
 Run-time dependency xkbcommon found: NO (tried pkgconfig)
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Running compile:
-Working directory:  /home/yoona/femu/build-femu/meson-private/tmpn64x09u9
-Command line:  cc /home/yoona/femu/build-femu/meson-private/tmpn64x09u9/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpn64x09u9/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -Wl,--start-group -lrt -Wl,--end-group -Wl,--allow-shlib-undefined 
+Working directory:  /home/yoona/femu/build-femu/meson-private/tmpppcah34t
+Command line:  cc /home/yoona/femu/build-femu/meson-private/tmpppcah34t/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpppcah34t/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -Wl,--start-group -lrt -Wl,--end-group -Wl,--allow-shlib-undefined 
 
 Code:
  int main(void) { return 0; }
@@ -126,8 +126,8 @@ Preliminary CMake check failed. Aborting.
 Run-time dependency libudev found: NO (tried pkgconfig and cmake)
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Running compile:
-Working directory:  /home/yoona/femu/build-femu/meson-private/tmp5faa48sy
-Command line:  cc /home/yoona/femu/build-femu/meson-private/tmp5faa48sy/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp5faa48sy/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 
+Working directory:  /home/yoona/femu/build-femu/meson-private/tmp9homat9e
+Command line:  cc /home/yoona/femu/build-femu/meson-private/tmp9homat9e/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp9homat9e/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 
 
 Code:
  #include<stdio.h>
@@ -148,8 +148,8 @@ Program stderr:
 
 
 Running compile:
-Working directory:  /home/yoona/femu/build-femu/meson-private/tmp2d1apnxb
-Command line:  cc /home/yoona/femu/build-femu/meson-private/tmp2d1apnxb/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp2d1apnxb/output.obj -pipe -c -D_FILE_OFFSET_BITS=64 -O0 --print-search-dirs 
+Working directory:  /home/yoona/femu/build-femu/meson-private/tmpp49nakj4
+Command line:  cc /home/yoona/femu/build-femu/meson-private/tmpp49nakj4/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpp49nakj4/output.obj -pipe -c -D_FILE_OFFSET_BITS=64 -O0 --print-search-dirs 
 
 Code:
  
@@ -168,7 +168,7 @@ Called `/usr/bin/pkg-config --modversion ncursesw` -> 1
 
 Run-time dependency ncursesw found: NO (tried pkgconfig)
 Using cached compile:
-Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmpqp174bhu/testfile.c -pipe -E -P -D_FILE_OFFSET_BITS=64 -P -O0 -std=gnu99 -DNCURSES_WIDECHAR 
+Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmp6jyydqxd/testfile.c -pipe -E -P -D_FILE_OFFSET_BITS=64 -P -O0 -std=gnu99 -DNCURSES_WIDECHAR 
 
 Code:
  
@@ -188,7 +188,7 @@ Library ncursesw found: NO
 Library cursesw found: NO
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Using cached compile:
-Cached command line:  cc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include /home/yoona/femu/build-femu/meson-private/tmp9gah34hn/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp9gah34hn/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 -pthread -Wl,--start-group -lgthread-2.0 -lglib-2.0 -liconv -Wl,--end-group 
+Cached command line:  cc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include /home/yoona/femu/build-femu/meson-private/tmp06plvte0/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp06plvte0/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 -pthread -Wl,--start-group -lgthread-2.0 -lglib-2.0 -liconv -Wl,--end-group 
 
 Code:
  
@@ -205,7 +205,7 @@ collect2: error: ld returned 1 exit status
 
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Using cached compile:
-Cached command line:  cc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include /home/yoona/femu/build-femu/meson-private/tmpfe1cwb_q/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpfe1cwb_q/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 -pthread -Wl,--start-group -lgthread-2.0 -lglib-2.0 -Wl,--end-group 
+Cached command line:  cc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include /home/yoona/femu/build-femu/meson-private/tmp5av7l4vm/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp5av7l4vm/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 -pthread -Wl,--start-group -lgthread-2.0 -lglib-2.0 -Wl,--end-group 
 
 Code:
  
@@ -240,7 +240,7 @@ Called `/usr/bin/pkg-config --modversion libjpeg` -> 1
 
 Run-time dependency libjpeg found: NO (tried pkgconfig)
 Using cached compile:
-Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmp7psl8tjh/testfile.c -pipe -E -P -D_FILE_OFFSET_BITS=64 -P -O0 -std=gnu99 
+Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmpnc5cl6nl/testfile.c -pipe -E -P -D_FILE_OFFSET_BITS=64 -P -O0 -std=gnu99 
 
 Code:
  
@@ -254,7 +254,7 @@ Code:
 Cached compiler stdout:
  
 Cached compiler stderr:
- /home/yoona/femu/build-femu/meson-private/tmp7psl8tjh/testfile.c:4:12: error: #error "Header 'sasl/sasl.h' could not be found"
+ /home/yoona/femu/build-femu/meson-private/tmpnc5cl6nl/testfile.c:4:12: error: #error "Header 'sasl/sasl.h' could not be found"
            #error "Header 'sasl/sasl.h' could not be found"
             ^~~~~
 
@@ -273,7 +273,7 @@ Called `/usr/bin/pkg-config --modversion libkeyutils` -> 1
 Run-time dependency libkeyutils found: NO (tried pkgconfig)
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Using cached compile:
-Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmp3hdh_u56/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp3hdh_u56/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 
+Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmpteazg3fy/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpteazg3fy/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 
 
 Code:
  
@@ -297,13 +297,13 @@ Code:
 Cached compiler stdout:
  
 Cached compiler stderr:
- /tmp/ccteyyCF.o: In function `main':
+ /tmp/ccwC3eFg.o: In function `main':
 testfile.c:(.text+0x5): undefined reference to `gettid'
 collect2: error: ld returned 1 exit status
 
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Using cached compile:
-Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmp__ujzebe/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp__ujzebe/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 
+Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmp8qfdcr3_/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp8qfdcr3_/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 
 
 Code:
  
@@ -332,17 +332,17 @@ Code:
 Cached compiler stdout:
  
 Cached compiler stderr:
- /home/yoona/femu/build-femu/meson-private/tmp__ujzebe/testfile.c: In function 'main':
-/home/yoona/femu/build-femu/meson-private/tmp__ujzebe/testfile.c:20:13: error: '__builtin_gettid' undeclared (first use in this function); did you mean '__builtin_gettext'?
+ /home/yoona/femu/build-femu/meson-private/tmp8qfdcr3_/testfile.c: In function 'main':
+/home/yoona/femu/build-femu/meson-private/tmp8qfdcr3_/testfile.c:20:13: error: '__builtin_gettid' undeclared (first use in this function); did you mean '__builtin_gettext'?
              __builtin_gettid;
              ^~~~~~~~~~~~~~~~
              __builtin_gettext
-/home/yoona/femu/build-femu/meson-private/tmp__ujzebe/testfile.c:20:13: note: each undeclared identifier is reported only once for each function it appears in
+/home/yoona/femu/build-femu/meson-private/tmp8qfdcr3_/testfile.c:20:13: note: each undeclared identifier is reported only once for each function it appears in
 
 Checking for function "gettid" : NO (cached)
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Using cached compile:
-Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmpfcilkayp/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpfcilkayp/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 
+Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmpfstotbkt/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpfstotbkt/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 
 
 Code:
  #include <malloc.h>
@@ -353,7 +353,7 @@ Cached compiler stderr:
  
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Using cached compile:
-Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmpi3tf4dwd/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpi3tf4dwd/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 
+Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmp8a729nq0/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp8a729nq0/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 
 
 Code:
  
@@ -369,21 +369,21 @@ Code:
 Cached compiler stdout:
  
 Cached compiler stderr:
- /home/yoona/femu/build-femu/meson-private/tmpi3tf4dwd/testfile.c: In function 'main':
-/home/yoona/femu/build-femu/meson-private/tmpi3tf4dwd/testfile.c:7:18: error: storage size of 'statxbuf' isn't known
+ /home/yoona/femu/build-femu/meson-private/tmp8a729nq0/testfile.c: In function 'main':
+/home/yoona/femu/build-femu/meson-private/tmp8a729nq0/testfile.c:7:18: error: storage size of 'statxbuf' isn't known
      struct statx statxbuf;
                   ^~~~~~~~
-/home/yoona/femu/build-femu/meson-private/tmpi3tf4dwd/testfile.c:8:5: warning: implicit declaration of function 'statx'; did you mean 'stat'? [-Wimplicit-function-declaration]
+/home/yoona/femu/build-femu/meson-private/tmp8a729nq0/testfile.c:8:5: warning: implicit declaration of function 'statx'; did you mean 'stat'? [-Wimplicit-function-declaration]
      statx(0, "", 0, STATX_BASIC_STATS, &statxbuf);
      ^~~~~
      stat
-/home/yoona/femu/build-femu/meson-private/tmpi3tf4dwd/testfile.c:8:21: error: 'STATX_BASIC_STATS' undeclared (first use in this function)
+/home/yoona/femu/build-femu/meson-private/tmp8a729nq0/testfile.c:8:21: error: 'STATX_BASIC_STATS' undeclared (first use in this function)
      statx(0, "", 0, STATX_BASIC_STATS, &statxbuf);
                      ^~~~~~~~~~~~~~~~~
-/home/yoona/femu/build-femu/meson-private/tmpi3tf4dwd/testfile.c:8:21: note: each undeclared identifier is reported only once for each function it appears in
+/home/yoona/femu/build-femu/meson-private/tmp8a729nq0/testfile.c:8:21: note: each undeclared identifier is reported only once for each function it appears in
 
 Using cached compile:
-Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmpywtizks7/testfile.c -pipe -E -P -D_FILE_OFFSET_BITS=64 -P -O0 -std=gnu99 
+Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmp90525him/testfile.c -pipe -E -P -D_FILE_OFFSET_BITS=64 -P -O0 -std=gnu99 
 
 Code:
  
@@ -397,7 +397,7 @@ Code:
 Cached compiler stdout:
  
 Cached compiler stderr:
- /home/yoona/femu/build-femu/meson-private/tmpywtizks7/testfile.c:4:12: error: #error "Header 'sys/ioccom.h' could not be found"
+ /home/yoona/femu/build-femu/meson-private/tmp90525him/testfile.c:4:12: error: #error "Header 'sys/ioccom.h' could not be found"
            #error "Header 'sys/ioccom.h' could not be found"
             ^~~~~
 
@@ -628,7 +628,7 @@ Configuring libslirp-version.h using configuration
 Library fdt found: YES
 None of 'CC_LD' are defined in the environment, not changing global flags.
 Using cached compile:
-Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmp0dxlsgzl/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmp0dxlsgzl/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 -Wl,--start-group /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/libfdt.so -Wl,--end-group 
+Cached command line:  cc /home/yoona/femu/build-femu/meson-private/tmpb3p36yxt/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpb3p36yxt/output.exe -pipe -D_FILE_OFFSET_BITS=64 -O0 -std=gnu99 -Wl,--start-group /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/libfdt.so -Wl,--end-group 
 
 Code:
  
@@ -638,12 +638,12 @@ Code:
 Cached compiler stdout:
  
 Cached compiler stderr:
- /home/yoona/femu/build-femu/meson-private/tmp0dxlsgzl/testfile.c: In function 'main':
-/home/yoona/femu/build-femu/meson-private/tmp0dxlsgzl/testfile.c:4:25: warning: implicit declaration of function 'fdt_check_full'; did you mean 'fdt_check_header'? [-Wimplicit-function-declaration]
+ /home/yoona/femu/build-femu/meson-private/tmpb3p36yxt/testfile.c: In function 'main':
+/home/yoona/femu/build-femu/meson-private/tmpb3p36yxt/testfile.c:4:25: warning: implicit declaration of function 'fdt_check_full'; did you mean 'fdt_check_header'? [-Wimplicit-function-declaration]
         int main(void) { fdt_check_full(NULL, 0); return 0; }
                          ^~~~~~~~~~~~~~
                          fdt_check_header
-/tmp/ccySGW3R.o: In function `main':
+/tmp/ccDNWSPt.o: In function `main':
 testfile.c:(.text+0x14): undefined reference to `fdt_check_full'
 collect2: error: ld returned 1 exit status
 
@@ -996,8 +996,8 @@ qemu 5.2.0
 
 Found ninja-1.8.2 at /usr/bin/ninja
 Running compile:
-Working directory:  /home/yoona/femu/build-femu/meson-private/tmpw2x4blaz
-Command line:  cc /home/yoona/femu/build-femu/meson-private/tmpw2x4blaz/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpw2x4blaz/output.obj -pipe -c -D_FILE_OFFSET_BITS=64 -O0 --print-search-dirs 
+Working directory:  /home/yoona/femu/build-femu/meson-private/tmpdrw28rfx
+Command line:  cc /home/yoona/femu/build-femu/meson-private/tmpdrw28rfx/testfile.c -o /home/yoona/femu/build-femu/meson-private/tmpdrw28rfx/output.obj -pipe -c -D_FILE_OFFSET_BITS=64 -O0 --print-search-dirs 
 
 Code:
  
@@ -1009,8 +1009,8 @@ libraries: =/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/../
 Compiler stderr:
  
 Running compile:
-Working directory:  /home/yoona/femu/build-femu/meson-private/tmpb7xfr_su
-Command line:  c++ /home/yoona/femu/build-femu/meson-private/tmpb7xfr_su/testfile.cpp -o /home/yoona/femu/build-femu/meson-private/tmpb7xfr_su/output.obj -pipe -c -D_FILE_OFFSET_BITS=64 -O0 -fpermissive --print-search-dirs 
+Working directory:  /home/yoona/femu/build-femu/meson-private/tmp3yfdx1jc
+Command line:  c++ /home/yoona/femu/build-femu/meson-private/tmp3yfdx1jc/testfile.cpp -o /home/yoona/femu/build-femu/meson-private/tmp3yfdx1jc/output.obj -pipe -c -D_FILE_OFFSET_BITS=64 -O0 -fpermissive --print-search-dirs 
 
 Code:
  

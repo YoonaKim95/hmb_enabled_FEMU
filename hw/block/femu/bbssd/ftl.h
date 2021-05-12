@@ -142,7 +142,9 @@ struct ssdparams {
     int pgs_per_ch;   /* # of pages per channel */
     int tt_pgs;       /* total # of pages in the SSD */
 
-    int blks_per_lun; /* # of blocks per LUN */
+	int hmb_lpas_per_blk;  /* total # of lpas can be cached to a HMB block*/
+    
+	int blks_per_lun; /* # of blocks per LUN */
     int blks_per_ch;  /* # of blocks per channel */
     int tt_blks;      /* total # of blocks in the SSD */
 
@@ -200,7 +202,12 @@ struct ssd {
     struct ssdparams sp;
     struct ssd_channel *ch;
     struct ppa *maptbl; /* page level mapping table */
-    uint64_t *rmap;     /* reverse mapptbl, assume it's stored in OOB */
+
+	int *hmb_cache_bm;  /* hmb cache 4kb unit */	
+	uint32_t nr_hmb_cache;
+	uint32_t addr_bits;
+
+	uint64_t *rmap;     /* reverse mapptbl, assume it's stored in OOB */
     struct write_pointer wp;
     struct line_mgmt lm;
 

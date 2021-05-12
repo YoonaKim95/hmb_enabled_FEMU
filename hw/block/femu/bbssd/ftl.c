@@ -6,6 +6,9 @@
 #include "hmb_spaceMgmt.h" /* for HMB_HAS_NO_ENTRY in hmb_meta_init() */
 #include "hmb_lru.h"
 
+#include <stdint.h>
+#include <math.h>
+
 //#define FEMU_DEBUG_FTL
 
 static void *ftl_thread(void *arg);
@@ -34,11 +37,23 @@ static inline uint8_t hmb_cached(struct ssd *ssd, int entry)
     return ssd->hmb_cache_bm[entry];
 }
 
+static inline struct ppa_hash get_maptbl_hash_ent(struct ssd *ssd, uint64_t lpn)
+{
+	return ssd->maptbl_hash[lpn];
+}
+
 
 static inline struct ppa get_maptbl_ent(struct ssd *ssd, uint64_t lpn)
 {
     return ssd->maptbl[lpn];
 }
+
+static inline void set_maptbl_hash_ent(struct ssd *ssd, uint64_t lpn, struct ppa_hash *ppa)
+{
+    ftl_assert(lpn < ssd->sp.tt_pgs);
+    ssd->maptbl_hash[lpn] = *ppa;
+}
+
 
 static inline void set_maptbl_ent(struct ssd *ssd, uint64_t lpn, struct ppa *ppa)
 {
@@ -228,6 +243,225 @@ static void ssd_advance_write_pointer(struct ssd *ssd)
     }
 }
 
+
+/* Func: get_vba_from_md5
+ * extract pba from md5 
+ */
+static int32_t get_vba_from_md5(uint64_t md5_result, int32_t hid){
+	int32_t temp;
+	uint64_t shifted;
+
+	//shift result using hid;
+	shifted = md5_result >> (hid*1);
+
+	//temp = shifted % num_vbt;
+	temp = shifted % BLKS_PER_PL;
+
+	return temp;
+}
+
+/* Func: check_written
+ * check corresponding can be written for given lpa
+ * if so, return ppa
+ * if not return -1
+ */
+static struct ppa_hash check_written(struct ssd *ssd, int32_t	pba)
+{
+	
+	struct ppa_hash ppa_struct;
+	ppa_struct.ppa = -1; 
+
+	//int32_t bit_fr_lpa;
+	int32_t temp2, ppa;
+
+	//bit_fr_lpa = num_page_off - num_ppid;
+	temp2 = ssd->barray[pba].wp;
+
+	// corresponding block is full;
+	if(temp2 == PGS_PER_BLK){
+		return ppa_struct;
+	}
+
+	if(temp2 > PGS_PER_BLK){
+		printf("overflow\n");
+	}
+
+	ppa = (pba * PGS_PER_BLK) + temp2;
+
+
+	ppa_struct.ppa = ppa; 
+	ppa_struct.ppid = temp2;
+
+	return ppa_struct; 
+}
+
+static struct ppa_hash get_new_page_hash(struct ssd *ssd, int32_t lpa) {
+
+	struct ppa_hash ppa_struct;
+	
+	struct nand_block block;
+	int32_t vba;
+	int32_t max_pba, max_vba, max_inv, max_hid, pba, cur_inv; 
+	uint32_t lpa_md5,  hid = 0;  //, cal_ppid = 0;
+
+	uint64_t md5_res;
+
+	int i;
+
+	size_t len = sizeof(lpa);
+
+	// variables for shared virtual block
+	int32_t shr_num_free[3];
+	int32_t shr_free_pba[3]; 
+	int32_t shr_free_hid[3];				// record vba with max free pages
+	int32_t shr_num_inv[3];
+	int32_t shr_inv_vba[3];
+	int32_t shr_inv_hid[3];					// record vba with max invalid pages
+	int32_t vba_pos, vba_srt, vba_temp;			// caculate vba's position
+	int32_t shr_pba, shr_vba, shr_hid, shr_chk;
+	//////////////
+
+	// get value from md5
+	lpa_md5 = lpa >> ssd->lpa_sft;
+
+	md5_res = md5_u(&lpa_md5, len);
+
+	// initialize variables for GC and shared virtual block
+	max_pba = -1;
+	max_inv = 0;
+	for(i = 0; i < 3 ; i++){
+		shr_num_free[i] = 0;
+		shr_free_pba[i] = -1; 
+		shr_free_hid[i] = -1;
+		shr_num_inv[i] = 0;
+		shr_inv_vba[i] = -1;
+		shr_inv_hid[i] = -1;
+	}
+
+	while(hid != ssd->hid_secondary) {
+		vba = get_vba_from_md5(md5_res, hid);
+
+		vba_pos = vba % 4;
+		vba_srt = vba - vba_pos;
+
+		/* convert virtual block to physical block  */
+
+		pba = ssd->vbt[vba].pba;
+
+		ppa_struct = check_written(ssd, pba); 
+
+		if(ppa_struct.ppa != -1) {
+			break;
+		}
+
+		cur_inv = ssd->barray[pba].ipc;
+
+		if(cur_inv > max_inv){
+			max_pba = pba;
+			max_hid = hid;
+			max_inv = cur_inv;
+			max_vba = vba;
+		}
+
+		// check shared virtual block info.
+		for(i = 0; i < 3 ; i++){
+			vba_pos = (vba_pos + 1) % 4;
+			vba_temp = vba_srt + vba_pos;
+
+			shr_pba = ssd->vbt[vba_temp].pba;
+			block = ssd->barray[shr_pba];
+
+			if(shr_num_free[i] == 0 && PGS_PER_BLK - (block.wp) > 0){
+				shr_free_pba[i] = shr_pba;
+				shr_num_free[i] = PGS_PER_BLK - (block.wp);
+				shr_free_hid[i] = hid;
+			}
+			if(shr_num_inv[i] < block.ipc){
+				shr_num_inv[i] = block.ipc;
+				shr_inv_vba[i] = vba_temp;
+				shr_inv_hid[i] = hid;
+			}
+		}
+
+		hid = hid + 1;
+	}
+
+	/* corresponding blocks are full */
+	if(hid == ssd->hid_secondary){
+		/* Log for 1st gc occurs */
+		shr_chk = 0;
+
+		if (max_pba == -1 || max_inv == 0) {
+			shr_chk = 0;
+			for(i = 0; i < 3; i++){
+				if(shr_num_free[i] > 0){
+					shr_chk = 1;
+					shr_pba = shr_free_pba[i];
+					shr_hid = shr_free_hid[i];
+					break;	
+				}
+				if(shr_num_inv[i] > 0){
+					shr_chk = 2;
+					shr_vba = shr_inv_vba[i];
+					shr_pba = ssd->vbt[shr_vba].pba;
+					shr_hid = shr_inv_hid[i];
+					break;
+				}
+			}
+
+			if(shr_chk == 1){
+				ppa_struct = check_written(ssd, shr_pba);
+				hid = shr_hid;
+			}
+			if(shr_chk == 2){
+				// pba = hash_garbage_collection(shr_pba, shr_vba);
+				pba = 0;
+				ppa_struct = check_written(ssd, pba);
+				hid = shr_hid;
+			}
+			else if(shr_chk == 0){	
+				//print log for collision
+				printf("\nno free space for lpa!!\n");
+				hid = 1;
+
+				while(hid != ssd->hid_secondary){
+					vba = get_vba_from_md5(md5_res, hid);
+
+					/* convert virtual block to physical block  */
+					pba = ssd->vbt[vba].pba;
+					printf("\nHID: %d,\tPBA: %d,\tINVALID: %d\n", hid, pba, ssd->barray[pba].ipc);
+
+					hid = hid + 1;
+				}
+
+				// exit(3);
+				ppa_struct.hid = -1;
+				return ppa_struct;
+			}
+		}
+		else {
+			pba = hash_garbage_collection(max_pba, max_vba);  //TODO 
+			//pba = 0;
+			ppa_struct = check_written(ssd, pba);
+			hid = max_hid;
+		}
+
+	}
+	// ppa_struct.ppa = ppa;
+
+	ppa_struct.hid = hid; 
+	// ppa_struct.ppid = cal_ppid; 
+
+	return ppa_struct;
+
+}
+
+static int hash_garbage_collection(uint32_t max_pba, uint32_t max_vba) {
+	//struct ppa_hash ppa_hash; 
+
+	return 0;
+}
+
 static struct ppa get_new_page(struct ssd *ssd)
 {
     struct write_pointer *wpp = &ssd->wp;
@@ -354,6 +588,12 @@ static void ssd_init_nand_lun(struct nand_lun *lun, struct ssdparams *spp)
     lun->busy = false;
 }
 
+static void ssd_init_blk(struct nand_block *blk, struct ssdparams *spp) {
+    blk->wp = 0;
+	blk->ipc = 0;
+	blk->vpc = 0;
+}
+
 static void ssd_init_ch(struct ssd_channel *ch, struct ssdparams *spp)
 {
     ch->nluns = spp->luns_per_ch;
@@ -364,6 +604,19 @@ static void ssd_init_ch(struct ssd_channel *ch, struct ssdparams *spp)
     ch->next_ch_avail_time = 0;
     ch->busy = 0;
 }
+
+static void ssd_init_maptbl_hash(struct ssd *ssd)
+{
+    struct ssdparams *spp = &ssd->sp;
+
+    ssd->maptbl_hash = g_malloc0(sizeof(struct ppa_hash) * spp->tt_pgs);
+    for (int i = 0; i < spp->tt_pgs; i++) {
+        ssd->maptbl_hash[i].ppa = -1;
+        ssd->maptbl_hash[i].ppid = -1;
+        ssd->maptbl_hash[i].hid = -1;
+    }
+}
+
 
 static void ssd_init_maptbl(struct ssd *ssd)
 {
@@ -398,6 +651,43 @@ static void ssd_init_hmb_cache(struct ssd *ssd)
 }
 
 
+static void ssd_init_hash_FTL(struct ssd *ssd) {
+    struct ssdparams *spp = &ssd->sp;
+
+	ssd->num_hid = HID_BITS;
+	//ssd->num_page_off = 8;
+	ssd->num_ppid = 8;
+
+	int secondary = 1;
+	for(int i = 0; i < ssd->num_hid; i++)
+		secondary = secondary * 2;
+
+	ssd->hid_secondary = secondary;
+	
+	ssd->pri_table = (PRIMARY_TABLE*)malloc(sizeof(PRIMARY_TABLE) * spp->tt_pgs);
+	ssd->hash_OOB = (H_OOB*)malloc(sizeof(H_OOB) * spp->tt_pgs);
+	ssd->vbt = (VIRTUAL_BLOCK_TABLE*)malloc(sizeof(VIRTUAL_BLOCK_TABLE) * (spp->tt_pgs/PGS_PER_BLK));
+
+	// initialize primary table & oob
+	for(int i = 0; i < spp->tt_pgs; i++){
+		ssd->pri_table[i].hid = 0;
+		ssd->pri_table[i].ppid = -1;
+		ssd->pri_table[i].ppa = -1;
+
+		ssd->pri_table[i].state = 0;
+		ssd->hash_OOB[i].lpa = -1;
+	}
+
+	// initialize virtual block table
+	//for(int i = 0; i < (spp->tt_pgs/PGS_PER_BLK); i++){
+	for(int i = 0; i < BLKS_PER_PL; i++){
+		ssd->vbt[i].pba = i;
+		ssd->vbt[i].state = 0;
+	}
+}
+
+
+
 static void ssd_init_rmap(struct ssd *ssd)
 {
     struct ssdparams *spp = &ssd->sp;
@@ -427,10 +717,18 @@ void ssd_init(FemuCtrl *n)
     }
 
 
+	ssd->barray = g_malloc0(sizeof(struct nand_block) * BLKS_PER_PL);
+    for (int i = 0; i < BLKS_PER_PL; i++) {
+        ssd_init_blk(&ssd->barray[i], spp);
+    }
+
+
 
 
     /* initialize maptbl */
     ssd_init_maptbl(ssd);
+    
+	ssd_init_maptbl_hash(ssd);
 
     /* initialize rmap */
 	ssd_init_rmap(ssd);
@@ -444,10 +742,12 @@ void ssd_init(FemuCtrl *n)
     /* initialize write pointer, this is how we allocate new pages for writes */
     ssd_init_write_pointer(ssd);
 
+//#if defined(HASH_FTL)
+	ssd_init_hash_FTL(ssd);
+//#endif 
+
 
 	// hmb_debug("possible caching entries: %u ", (spp->tt_pgs * ssd->addr_bits) / (HMB_CTRL.page_size * 8));	
-
-
 
 	printf("ssd init done");
     qemu_thread_create(&ssd->ftl_thread, "FEMU-FTL-Thread", ftl_thread, n,
@@ -475,6 +775,11 @@ static inline bool valid_ppa(struct ssd *ssd, struct ppa *ppa)
 static inline bool valid_lpn(struct ssd *ssd, uint64_t lpn)
 {
     return (lpn < ssd->sp.tt_pgs);
+}
+
+static inline bool mapped_ppa_hash(struct ppa_hash *ppa)
+{
+    return !(ppa->ppa == -1);
 }
 
 static inline bool mapped_ppa(struct ppa *ppa)
@@ -827,7 +1132,7 @@ static int do_gc(struct ssd *ssd, bool force)
 
 static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
 {
-    struct ssdparams *spp = &ssd->sp;
+	struct ssdparams *spp = &ssd->sp;
     uint64_t lba = req->slba;
     int nsecs = req->nlb;
     struct ppa ppa;
@@ -904,71 +1209,140 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
 
 static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 {
+	if(HASH_FTL) {
+		uint64_t lba = req->slba;
+		struct ssdparams *spp = &ssd->sp;
+		int len = req->nlb;
+		uint64_t start_lpn = lba / spp->secs_per_pg;
+		uint64_t end_lpn = (lba + len - 1) / spp->secs_per_pg;
+		struct ppa_hash ppa_hash;
+		uint64_t lpn;
+		uint64_t curlat = 0, maxlat = 0;
 
-#if defined(HASH_FTL)
-
-#else
-	uint64_t lba = req->slba;
-    struct ssdparams *spp = &ssd->sp;
-    int len = req->nlb;
-    uint64_t start_lpn = lba / spp->secs_per_pg;
-    uint64_t end_lpn = (lba + len - 1) / spp->secs_per_pg;
-    struct ppa ppa;
-    uint64_t lpn;
-    uint64_t curlat = 0, maxlat = 0;
-    int r;
-
-    if (end_lpn >= spp->tt_pgs) {
-        ftl_err("start_lpn=%"PRIu64", end_lpn=%"PRIu64", tt_pgs=%d\n", start_lpn, end_lpn, ssd->sp.tt_pgs);
-        //ftl_err("start_lpn=%"PRIu64",tt_pgs=%d\n", start_lpn, ssd->sp.tt_pgs);
-    }
-
-    while (should_gc_high(ssd)) {
-        /* perform GC here until !should_gc(ssd) */
-
-		r = do_gc(ssd, true);
-        if (r == -1)
-            break;
-    }
-
-    for (lpn = start_lpn; lpn <= end_lpn; lpn++) {
-        ppa = get_maptbl_ent(ssd, lpn);
-        if (mapped_ppa(&ppa)) {
-            /* update old page information first */
-            mark_page_invalid(ssd, &ppa);
-            set_rmap_ent(ssd, INVALID_LPN, &ppa);
-        
-			// chk hmb cached info and makr dirty	
-			int hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;	
-			if (hmb_cached(ssd, hmb_cache_entry) == 1) { // mapping mapped to HMB 
-				set_hmb_cache(ssd, hmb_cache_entry, 0); // set HMB cache dirty  
-			}
+		if (end_lpn >= spp->tt_pgs) {
+			ftl_err("start_lpn=%"PRIu64", end_lpn=%"PRIu64", tt_pgs=%d\n", start_lpn, end_lpn, ssd->sp.tt_pgs);
+			//ftl_err("start_lpn=%"PRIu64",tt_pgs=%d\n", start_lpn, ssd->sp.tt_pgs);
 		}
 
-        /* new write */
-        ppa = get_new_page(ssd);
-        /* update maptbl */
-        set_maptbl_ent(ssd, lpn, &ppa);
-        /* update rmap */
-        set_rmap_ent(ssd, lpn, &ppa);
+		int r;
+		while (should_gc_high(ssd)) {
+			/* perform GC here until !should_gc(ssd) */
 
-        mark_page_valid(ssd, &ppa);
+			r = do_gc(ssd, true);
+			if (r == -1)
+				break;
+		}
 
-        /* need to advance the write pointer here */
-        ssd_advance_write_pointer(ssd);
 
-        struct nand_cmd swr;
-        swr.type = USER_IO;
-        swr.cmd = NAND_WRITE;
-        swr.stime = req->stime;
-        /* get latency statistics */
-        curlat = ssd_advance_status(ssd, &ppa, &swr, 0);
-        maxlat = (curlat > maxlat) ? curlat : maxlat;
-    }
+		for (lpn = start_lpn; lpn <= end_lpn; lpn++) {
+			ppa_hash = get_new_page_hash(ssd, lpn);
+			set_maptbl_hash_ent(ssd, lpn, &ppa_hash);
 
-    return maxlat;
-#endif
+			ppa_hash = get_maptbl_hash_ent(ssd, lpn);
+			if (mapped_ppa(&ppa_hash)) {
+				/* update old page information first */
+				mark_page_invalid(ssd, &ppa_hash);
+				set_rmap_ent(ssd, INVALID_LPN, &ppa_hash);
 
+				// chk hmb cached info and makr dirty	
+				int hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;	
+				if (hmb_cached(ssd, hmb_cache_entry) == 1) { // mapping mapped to HMB 
+					set_hmb_cache(ssd, hmb_cache_entry, 0); // set HMB cache dirty  
+				}
+			}
+
+			/* new write */
+//			ppa_hash = get_new_page_hash(ssd);
+
+			/* update maptbl */
+//			set_maptbl_ent(ssd, lpn, &ppa);
+			/* update rmap */
+			set_rmap_ent(ssd, lpn, &ppa);
+
+			mark_page_valid(ssd, &ppa);
+
+			/* need to advance the write pointer here */
+			ssd_advance_write_pointer(ssd);
+
+			struct nand_cmd swr;
+			swr.type = USER_IO;
+			swr.cmd = NAND_WRITE;
+			swr.stime = req->stime;
+			/* get latency statistics */
+			curlat = ssd_advance_status(ssd, &ppa, &swr, 0);
+			maxlat = (curlat > maxlat) ? curlat : maxlat;
+		}
+
+		return maxlat;
+		
+	} else {
+	
+
+
+		uint64_t lba = req->slba;
+		struct ssdparams *spp = &ssd->sp;
+		int len = req->nlb;
+		uint64_t start_lpn = lba / spp->secs_per_pg;
+		uint64_t end_lpn = (lba + len - 1) / spp->secs_per_pg;
+		struct ppa ppa;
+		uint64_t lpn;
+		uint64_t curlat = 0, maxlat = 0;
+
+		if (end_lpn >= spp->tt_pgs) {
+			ftl_err("start_lpn=%"PRIu64", end_lpn=%"PRIu64", tt_pgs=%d\n", start_lpn, end_lpn, ssd->sp.tt_pgs);
+			//ftl_err("start_lpn=%"PRIu64",tt_pgs=%d\n", start_lpn, ssd->sp.tt_pgs);
+		}
+
+		int r;
+		while (should_gc_high(ssd)) {
+			/* perform GC here until !should_gc(ssd) */
+
+			r = do_gc(ssd, true);
+			if (r == -1)
+				break;
+		}
+
+
+		for (lpn = start_lpn; lpn <= end_lpn; lpn++) {
+
+
+			ppa = get_maptbl_ent(ssd, lpn);
+			if (mapped_ppa(&ppa)) {
+				/* update old page information first */
+				mark_page_invalid(ssd, &ppa);
+				set_rmap_ent(ssd, INVALID_LPN, &ppa);
+
+				// chk hmb cached info and makr dirty	
+				int hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;	
+				if (hmb_cached(ssd, hmb_cache_entry) == 1) { // mapping mapped to HMB 
+					set_hmb_cache(ssd, hmb_cache_entry, 0); // set HMB cache dirty  
+				}
+			}
+
+			/* new write */
+			ppa = get_new_page(ssd);
+
+			/* update maptbl */
+			set_maptbl_ent(ssd, lpn, &ppa);
+			/* update rmap */
+			set_rmap_ent(ssd, lpn, &ppa);
+
+			mark_page_valid(ssd, &ppa);
+
+			/* need to advance the write pointer here */
+			ssd_advance_write_pointer(ssd);
+
+			struct nand_cmd swr;
+			swr.type = USER_IO;
+			swr.cmd = NAND_WRITE;
+			swr.stime = req->stime;
+			/* get latency statistics */
+			curlat = ssd_advance_status(ssd, &ppa, &swr, 0);
+			maxlat = (curlat > maxlat) ? curlat : maxlat;
+		}
+
+		return maxlat;
+	}
 }
 
 static void *ftl_thread(void *arg)
@@ -1028,3 +1402,122 @@ static void *ftl_thread(void *arg)
     return NULL;
 }
 
+uint64_t md5_u(uint32_t *initial_msg, size_t initial_len)
+{
+	uint32_t *msg = NULL;
+	uint32_t h0, h1, h2, h3;
+	int new_len, offset;
+	uint32_t temp;
+	
+	uint64_t tmp, result;
+
+	// per-round shift amounts
+	uint32_t r[] = { 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
+					5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20,
+					4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
+					6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21 };
+
+	// Use binary integer part of the sines of integers (in radians) as constants// Initialize variables:
+	uint32_t k[] = {
+		0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
+		0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
+		0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
+		0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821,
+		0xf61e2562, 0xc040b340, 0x265e5a51, 0xe9b6c7aa,
+		0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8,
+		0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed,
+		0xa9e3e905, 0xfcefa3f8, 0x676f02d9, 0x8d2a4c8a,
+		0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c,
+		0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70,
+		0x289b7ec6, 0xeaa127fa, 0xd4ef3085, 0x04881d05,
+		0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665,
+		0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039,
+		0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1,
+		0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1,
+		0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391 };
+
+	h0 = 0x67452301;
+	h1 = 0xefcdab89;
+	h2 = 0x98badcfe;
+	h3 = 0x10325476;
+
+	//int new_len;
+	for (new_len = initial_len * 8 + 1; new_len % 512 != 448; new_len++);
+	new_len /= 8;
+
+	if((msg = (uint32_t*)calloc(new_len + 64, 1)) == NULL){
+		printf("md5 msg allocation is failed\n");
+		return 1;
+	}; // also appends "0" bits
+								   // (we alloc also 64 extra bytes...)
+	
+	memcpy(msg, initial_msg, initial_len);
+	msg[initial_len] = 128; // write the "1" bit
+
+	// note, we append the len
+
+	// in bits at the end of t nks:
+	//for each 512-bit chunk of message:
+
+	for (offset = 0; offset < new_len; offset += (512 / 8)) {
+
+		// break chunk into sixteen 32-bit words w[j], 0 �� j �� 15
+		uint32_t *w = (uint32_t *)(msg + offset);
+		
+		// Initialize hash value
+		uint32_t a = h0;
+		uint32_t b = h1;
+		uint32_t c = h2;
+		uint32_t d = h3;
+
+		// Main loop:
+		uint32_t i;
+		for (i = 0; i < 64; i++) {
+			uint32_t f, g;
+
+			if (i < 16) {
+				f = (b & c) | ((~b) & d);
+				g = i;
+			}
+			else if (i < 32) {
+				f = (d & b) | ((~d) & c);
+				g = (5 * i + 1) % 16;
+			}
+			else if (i < 48) {
+				f = b ^ c ^ d;
+				g = (3 * i + 5) % 16;
+			}
+			else {
+				f = c ^ (b | (~d));
+				g = (7 * i) % 16;
+			}
+
+			temp = d;
+			d = c;
+			c = b;
+
+			b = b + LEFTROTATE((a + f + k[i] + w[g]), r[i]);
+			a = temp;
+
+
+
+		}
+
+		// Add this chunk's hash to result so far:
+
+		h0 += a;
+		h1 += b;
+		h2 += c;
+		h3 += d;
+
+	}
+	
+	result = h2;
+
+	tmp = h3 * pow(2,32);
+
+	result = result + tmp;
+	// cleanup
+	free(msg);
+	return result;
+}

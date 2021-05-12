@@ -7,6 +7,26 @@
 #define INVALID_LPN     (~(0ULL))
 #define UNMAPPED_PPA    (~(0ULL))
 
+//#define HASH_FTL            
+
+#if defined(HASH_FTL)
+	#define ADDR_BITS 14
+#else 
+	#define ADDR_BITS 32
+#endif 
+
+
+#define SECSZ 512
+#define SECS_PER_PAGE 8  /* 4KB */
+
+#define PGS_PER_BLK 512
+#define BLKS_PER_PL 512   
+//spp->blks_per_pl = 256; /* 16GB */
+#define PLS_PER_LUN 1
+#define LUNS_PER_CH 8
+#define NCHS 8
+
+
 enum {
     NAND_READ =  0,
     NAND_WRITE = 1,
@@ -197,6 +217,23 @@ struct nand_cmd {
     int64_t stime; /* Coperd: request arrival time */
 };
 
+typedef struct QNode {
+    struct QNode *prev, *next;
+    unsigned pageNumber; // the page number stored in this QNode
+} QNode;
+  
+typedef struct hmb_Queue {
+    unsigned count; // Number of filled frames
+    unsigned numberOfFrames; // total number of frames
+    QNode *front, *rear;
+} hmb_Queue;
+  
+typedef struct hmb_Hash {
+    int capacity; // how many pages can be there
+    QNode** array; // an array of queue nodes
+} hmb_Hash;
+
+
 struct ssd {
     char *ssdname;
     struct ssdparams sp;
@@ -206,6 +243,10 @@ struct ssd {
 	int *hmb_cache_bm;  /* hmb cache 4kb unit */	
 	uint32_t nr_hmb_cache;
 	uint32_t addr_bits;
+
+
+	hmb_Queue* hmb_lru_list;
+	hmb_Hash* hmb_lru_hash;
 
 	uint64_t *rmap;     /* reverse mapptbl, assume it's stored in OOB */
     struct write_pointer wp;

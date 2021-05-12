@@ -4,7 +4,7 @@
 #include "hmb_types.h"
 #include "hmb_utils.h"
 #include "hmb_spaceMgmt.h" /* for HMB_HAS_NO_ENTRY in hmb_meta_init() */
-
+#include "hmb_lru.h"
 
 //#define FEMU_DEBUG_FTL
 
@@ -20,6 +20,9 @@ static inline bool should_gc_high(struct ssd *ssd)
     return (ssd->lm.free_line_cnt <= ssd->sp.gc_thres_lines_high);
 }
 
+
+// 0 == dirty | evicted | not_cached 
+// 1 == hmb_cached 
 static inline void set_hmb_cache(struct ssd *ssd, int entry, int i)
 {
     ssd->hmb_cache_bm[entry] = i;
@@ -253,13 +256,13 @@ static void check_params(struct ssdparams *spp)
 
 static void ssd_init_params(struct ssdparams *spp, struct ssd *ssd)
 {
-    spp->secsz = 512;
-    spp->secs_per_pg = 8;
-    spp->pgs_per_blk = 256;
-    spp->blks_per_pl = 256; /* 16GB */
-    spp->pls_per_lun = 1;
-    spp->luns_per_ch = 8;
-    spp->nchs = 8;
+    spp->secsz = SECSZ;
+    spp->secs_per_pg = SECS_PER_PAGE;
+    spp->pgs_per_blk = PGS_PER_BLK;
+    spp->blks_per_pl = BLKS_PER_PL; /* 16GB */
+    spp->pls_per_lun = PLS_PER_LUN;
+    spp->luns_per_ch = LUNS_PER_CH;
+    spp->nchs = NCHS;
 
     spp->mp_rd_lat = NAND_READ_LATENCY;
     spp->pg_rd_lat = NAND_READ_LATENCY;
@@ -387,7 +390,11 @@ static void ssd_init_hmb_cache(struct ssd *ssd)
 		// printf("hmb cache bm [%d]: %d\n", i, ssd->hmb_cache_bm[i]);
 	}
 
-	ssd->nr_hmb_cache = HMB_CTRL.FTL_free_mappings; 
+	// ssd->nr_hmb_cache = HMB_CTRL.FTL_free_mappings; 
+	ssd->nr_hmb_cache = HMB_ENTRIES;
+
+	ssd->hmb_lru_list  = init_hmb_LRU_list(ssd->nr_hmb_cache);
+	ssd->hmb_lru_hash  = init_hmb_LRU_hash(available_entries);
 }
 
 
@@ -409,7 +416,7 @@ void ssd_init(FemuCtrl *n)
     ftl_assert(ssd);
 	
 	// 32bits for mapping 	
-	ssd->addr_bits = 32;
+	ssd->addr_bits = ADDR_BITS;
 
     ssd_init_params(spp, ssd);
 
@@ -831,9 +838,10 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
 
 	// HMB cache 
 	int hmb_cache_entry = 0;
-
+	int hmb_victim = -1;
+	
     if (end_lpn >= spp->tt_pgs) {
-        ftl_err("start_lpn=%"PRIu64",tt_pgs=%d\n", start_lpn, ssd->sp.tt_pgs);
+        ftl_err("start_lpn=%"PRIu64", end_lpn=%"PRIu64", tt_pgs=%d\n", start_lpn, end_lpn, ssd->sp.tt_pgs);
     }
 
     /* normal IO read path */
@@ -856,6 +864,7 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
 		
 		hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;	
 		hmb_debug("HMB cache entry: %u ", hmb_cache_entry);
+
 		// chk if lpn is cached to HMB
 		if (hmb_cached(ssd, hmb_cache_entry) == 0) { // not mapped to HMB 
 
@@ -864,15 +873,25 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
 			//	sublat = ssd_advance_status(ssd, &ppa, &srd, 0);
 			// cache the corresponding LPN list to HMB
 	
-			sublat = ssd_advance_status(ssd, &ppa, &srd, 0);  // cahced  
+			sublat = ssd_advance_status(ssd, &ppa, &srd, 0);  // not cahced  (rd_lat *2)
 
 			if(ssd->nr_hmb_cache > 0) {
 				ssd->nr_hmb_cache--; 
-				set_hmb_cache(ssd, hmb_cache_entry, 1); 
+				if (ReferencePage(ssd, hmb_cache_entry) != -1)
+					hmb_debug("HMB cache meta management is not synced");
 			} else {
 				// lru evict entry and add
+				// evict and ad 					 
+				hmb_victim = ReferencePage(ssd, hmb_cache_entry);
+				
+				if(hmb_victim == -1) {
+					hmb_debug("HMB cache meta management is not synced");
+				} else 
+					set_hmb_cache(ssd, hmb_victim, 0);
 
 			}
+	
+			set_hmb_cache(ssd, hmb_cache_entry, 1); 
 		} else {
 			sublat = ssd_advance_status(ssd, &ppa, &srd, 1);  // cahced 	
 		}
@@ -885,7 +904,11 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
 
 static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 {
-    uint64_t lba = req->slba;
+
+#if defined(HASH_FTL)
+
+#else
+	uint64_t lba = req->slba;
     struct ssdparams *spp = &ssd->sp;
     int len = req->nlb;
     uint64_t start_lpn = lba / spp->secs_per_pg;
@@ -896,12 +919,14 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
     int r;
 
     if (end_lpn >= spp->tt_pgs) {
-        ftl_err("start_lpn=%"PRIu64",tt_pgs=%d\n", start_lpn, ssd->sp.tt_pgs);
+        ftl_err("start_lpn=%"PRIu64", end_lpn=%"PRIu64", tt_pgs=%d\n", start_lpn, end_lpn, ssd->sp.tt_pgs);
+        //ftl_err("start_lpn=%"PRIu64",tt_pgs=%d\n", start_lpn, ssd->sp.tt_pgs);
     }
 
     while (should_gc_high(ssd)) {
         /* perform GC here until !should_gc(ssd) */
-        r = do_gc(ssd, true);
+
+		r = do_gc(ssd, true);
         if (r == -1)
             break;
     }
@@ -916,7 +941,7 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 			// chk hmb cached info and makr dirty	
 			int hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;	
 			if (hmb_cached(ssd, hmb_cache_entry) == 1) { // mapping mapped to HMB 
-				set_hmb_cache(ssd, hmb_cache_entry, 0); 
+				set_hmb_cache(ssd, hmb_cache_entry, 0); // set HMB cache dirty  
 			}
 		}
 
@@ -942,6 +967,8 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
     }
 
     return maxlat;
+#endif
+
 }
 
 static void *ftl_thread(void *arg)

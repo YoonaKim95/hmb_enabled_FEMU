@@ -430,10 +430,12 @@ static void nvme_init_ctrl(FemuCtrl *n)
 
 
 	// [YA-HMB]
-                                                                                      	
-	// id->hmpre = cpu_to_le32(2048);  /* HMB: Preferred size is 8MB */
+	
+    /* HMB: Preferred size is 4kb * HMB_ENTRIES */
+	id->hmpre = cpu_to_le32(HMB_ENTRIES);  
+	//id->hmpre = cpu_to_le32(2048);  /* HMB: Preferred size is 8MB */
 	//id->hmpre = cpu_to_le32(8192);  /* HMB: Preferred size is 32MB */
-	id->hmpre = cpu_to_le32(16384);  /* HMB: Preferred size is 64MB */
+	// id->hmpre = cpu_to_le32(16384);  /* HMB: Preferred size is 64MB */
 	// id->hmpre = cpu_to_le32(32768);  /* HMB: Preferred size is 128MB */
 	//id->hmpre = cpu_to_le32(65536);  /* HMB: Preferred size is 256MB */
 	//id->hmpre = cpu_to_le32(131072); /* HMB: Preferred size is 512MB */

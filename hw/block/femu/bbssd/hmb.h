@@ -1,33 +1,19 @@
-/**
-   #Group:  SSLab <sswlab.kw.ac.kr>
-   #Author: Kyusik Kim <kks@kw.ac.kr> and Taeseok Kim <tskim@kw.ac.kr>
-
-   #Project Name: HMB-supported DRAM-less SSD Simulator
-   #Module Name: HMB Management
-   #File Name: hmb.h
-
-   #Version: v0.1
-   #Last Modified: April 9, 2018
-
-   #Description:
-     Functions, definitions and structures for managing HMB
-
-     (1) for supporting HMB features of the NVMe 
-       --> struct HmbEntry, ...
- 	 (2) for managing and allocating HMB space
-       --> hmb_malloc(), hmb_calloc() and hmb_free()
-	   --> hmb_map_*(), hmb_segment_*(), ...
-**/
-
-/**
-    #Revision History
-	  v0.1
-	    - First draft
-**/
-
 
 #ifndef __SSD__HMB_H__
 #define __SSD__HMB_H__
+
+#define HMB_ENTRIES 2048 
+
+	//id->hmpre = cpu_to_le32(2048);  /* HMB: Preferred size is 8MB */
+	//id->hmpre = cpu_to_le32(8192);  /* HMB: Preferred size is 32MB */
+	// id->hmpre = cpu_to_le32(16384);  /* HMB: Preferred size is 64MB */
+	// id->hmpre = cpu_to_le32(32768);  /* HMB: Preferred size is 128MB */
+	//id->hmpre = cpu_to_le32(65536);  /* HMB: Preferred size is 256MB */
+	//id->hmpre = cpu_to_le32(131072); /* HMB: Preferred size is 512MB */
+	//id->hmpre = cpu_to_le32(262144); /* HMB: Preferred size is 1GB */
+	//id->hmpre = cpu_to_le32(524288); /* HMB: Preferred size is 2GB */
+	//id->hmpre = cpu_to_le32(786432); /* HMB: Preferred size is 3GB */	
+	// id->hmpre = cpu_to_le32(1048576);  // HMB: Preferred size is 4GB 
 
 #include "hmb_debug.h"
 #include "hmb_internal.h"

@@ -22,6 +22,7 @@ softmmu_ss.add(when: 'CONFIG_FEMU_PCI', if_true: files('femu/dma.c', 'femu/intr.
 			'femu/bbssd/hmb_internal.c',
 			'femu/bbssd/hmb_spaceMgmt.c',
 			'femu/bbssd/hmb_utils.c',
+			'femu/bbssd/hmb_lru.c',
 			
 		
 			

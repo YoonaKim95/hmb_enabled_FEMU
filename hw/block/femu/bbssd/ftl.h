@@ -77,13 +77,13 @@ enum {
 #define LUN_BITS    (8)
 #define CH_BITS     (7)
 
-struct ppa_hash {
+/*struct ppa_hash {
 	int32_t hid; 
 	int32_t ppid;
 	
-	int32_t ppa;
+	int64_t ppa;
 };
-
+*/
 /* describe a physical page addr */
 struct ppa {
     union {
@@ -96,13 +96,15 @@ struct ppa {
             uint64_t ch  : CH_BITS;
             uint64_t rsv : 1;
         } g;
-
         uint64_t ppa;
     };
 
+	uint64_t ppa_hash;
 
+	uint32_t hid; 
+	uint32_t ppid;
 };
-
+ 
 typedef int nand_sec_status_t;
 
 struct nand_page {
@@ -118,10 +120,6 @@ struct nand_block {
     int vpc; /* valid page count */
     int erase_cnt;
     int wp; /* current write pointer */
-
-
-	int invalid; 
-	int valid; 
 };
 
 struct nand_plane {
@@ -159,8 +157,7 @@ struct ssdparams {
     int pg_wr_lat;    /* NAND page program latency in nanoseconds */
     int blk_er_lat;   /* NAND block erase latency in nanoseconds */
     int ch_xfer_lat;  /* channel transfer latency for one page in nanoseconds
-                       * this defines the channel bandwith
-                       */
+                       * this defines the channel bandwith  */
 
     double gc_thres_pcent;
     int gc_thres_lines;
@@ -259,6 +256,7 @@ typedef struct hash_OOB{
 typedef struct primary_table{
 	int32_t hid;
 	int32_t ppid;
+	
 	int32_t ppa;
 	bool state; // CLEAN or DIRTY
 } PRIMARY_TABLE;
@@ -268,7 +266,6 @@ typedef struct virtual_block_table{
 	bool state; // CLEAN or DIRTY
 } VIRTUAL_BLOCK_TABLE;
 // #endif
-
 
 struct ssd {
 	char *ssdname;
@@ -281,7 +278,9 @@ struct ssd {
 	uint32_t nr_hmb_cache;
 	uint32_t addr_bits;
 
-//#if defined(HASH_FTL)
+	int num_GC; 
+
+	// HASH_FTL
 	PRIMARY_TABLE *pri_table;
 	VIRTUAL_BLOCK_TABLE *vbt;
 	int32_t num_hid; 
@@ -291,31 +290,16 @@ struct ssd {
 	int32_t lpa_sft;
 	int32_t num_vbt;
 	int32_t shr_read_cnt[4];
-
 	struct nand_block *barray;
-	
-	
 	H_OOB *hash_OOB;
 
-	/*H_OOB *hash_OOB;
-	BM_T *bm;
-
-	Block *reserved;
-	int32_t reserved_pba;
-
-	b_queue *free_b;
-	Heap *b_heap;
-*/
-
-//#endif 
-
+	// HMB LRU list 
 	hmb_Queue* hmb_lru_list;
 	hmb_Hash* hmb_lru_hash;
 
 	uint64_t *rmap;     /* reverse mapptbl, assume it's stored in OOB */
 
     struct write_pointer *wp_hash;
-	
 	
 	struct write_pointer wp;
     struct line_mgmt lm;
@@ -329,7 +313,9 @@ struct ssd {
 
 void ssd_init(FemuCtrl *n);
 
-uint64_t md5_u(uint32_t *initial_msg, size_t initial_len); 
+struct nand_block *get_blk(struct ssd *ssd, struct ppa *ppa); 
+struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa);
+// uint64_t md5_u(uint32_t *initial_msg, size_t initial_len); 
 
 #ifdef FEMU_DEBUG_FTL
 #define ftl_debug(fmt, ...) \

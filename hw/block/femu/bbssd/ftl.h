@@ -7,7 +7,8 @@
 #define INVALID_LPN     (~(0ULL))
 #define UNMAPPED_PPA    (~(0ULL))
 
-#define HASH_FTL 1            
+#define HASH_FTL 0            
+//#define HASH_FTL 1            
 
 #define LEFTROTATE(x, c) (((x) << (c)) | ((x) >> (32 - (c))))
 	
@@ -101,8 +102,8 @@ struct ppa {
 
 	uint64_t ppa_hash;
 
-	uint32_t hid; 
-	uint32_t ppid;
+	int32_t hid; 
+	int32_t ppid;
 };
  
 typedef int nand_sec_status_t;
@@ -114,12 +115,16 @@ struct nand_page {
 };
 
 struct nand_block {
-    struct nand_page *pg;
+	uint64_t blk_id;
+
+	struct nand_page *pg;
     int npgs;
     int ipc; /* invalid page count */
     int vpc; /* valid page count */
     int erase_cnt;
     int wp; /* current write pointer */
+
+	bool reserved; // reserved blk
 };
 
 struct nand_plane {
@@ -279,6 +284,7 @@ struct ssd {
 	uint32_t addr_bits;
 
 	int num_GC; 
+	int num_GCcopy; 
 
 	// HASH_FTL
 	PRIMARY_TABLE *pri_table;
@@ -286,6 +292,8 @@ struct ssd {
 	int32_t num_hid; 
 	int32_t num_ppid;
 	int32_t hid_secondary; 
+
+	struct nand_block reserved;
 
 	int32_t lpa_sft;
 	int32_t num_vbt;
@@ -313,9 +321,19 @@ struct ssd {
 
 void ssd_init(FemuCtrl *n);
 
+struct nand_lun *get_lun(struct ssd *ssd, struct ppa *ppa);
 struct nand_block *get_blk(struct ssd *ssd, struct ppa *ppa); 
 struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa);
+int hash_read(struct ssd *ssd, struct ppa * ppa, uint64_t lpn);
+
 // uint64_t md5_u(uint32_t *initial_msg, size_t initial_len); 
+
+void clean_one_block(struct ssd *ssd, struct ppa *ppa);
+
+void mark_line_free(struct ssd *ssd, struct ppa *ppa);
+void mark_block_free(struct ssd *ssd, struct ppa *ppa);
+uint64_t ssd_advance_status(struct ssd *ssd, struct ppa *ppa, struct nand_cmd *ncmd, int hmb_cached);
+
 
 #ifdef FEMU_DEBUG_FTL
 #define ftl_debug(fmt, ...) \

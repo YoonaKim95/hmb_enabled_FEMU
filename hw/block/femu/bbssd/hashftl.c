@@ -1,7 +1,6 @@
 #include "ftl.h"
 #include "hashftl.h"
 
-
 #include <stdint.h>
 #include <math.h>
 
@@ -17,15 +16,51 @@ static int32_t get_vba_from_md5(uint64_t md5_result, int32_t hid){
 	shifted = md5_result >> (hid*1);
 
 	//temp = shifted % num_vbt;
-	temp = shifted % BLKS_PER_PL;
+	temp = shifted % (BLKS_PER_PL - 1);
 
 	return temp;
 }
 
-static int hash_garbage_collection(struct ssd *ssd, uint32_t max_pba, uint32_t max_vba) {
-	//struct ppa_hash ppa_hash; 
 
-	ssd->num_GC = ssd->num_GC + 1; 
+
+static int hash_garbage_collection(struct ssd *ssd, uint32_t max_pba, uint32_t max_vba) {
+
+    struct ssdparams *spp = &ssd->sp;
+	struct ppa *ppa = NULL;
+	struct nand_block *victim = NULL; 
+	//ssd->reserved = NULL;
+
+    struct nand_lun *lunp;
+	ppa->ppa_hash = -1;
+
+	ppa->ppa = 0;
+	ppa->g.ch = 0;
+	ppa->g.lun = 0;
+	ppa->g.pg = 0;
+	ppa->g.blk = max_pba;    // GC victim blk max_pba
+	ppa->g.pl = 0;
+	ftl_assert(ppa.g.pl == 0);
+
+	// GC 1 get victim blk
+	victim = get_blk(ssd, ppa);
+	if(victim->ipc > 0) {
+		lunp = get_lun(ssd, ppa);
+		clean_one_block(ssd, ppa);
+		mark_block_free(ssd, ppa);
+		if (spp->enable_gc_delay) {
+			struct nand_cmd gce;
+			gce.type = GC_IO;
+			gce.cmd = NAND_ERASE;
+			gce.stime = 0;
+			ssd_advance_status(ssd, ppa, &gce, 0);
+		}
+		lunp->gc_endtime = lunp->next_lun_avail_time;
+		mark_line_free(ssd, ppa);
+		ssd->num_GC = ssd->num_GC + 1; 
+	} else { //  (victim->ipc == 0) 
+		// nothing can be erased --> error 
+		ftl_debug("selected victim has zero invalid pages cannot be erased");
+	}
 
 	return 0;
 }
@@ -193,26 +228,27 @@ static uint64_t md5_u(uint32_t *initial_msg, size_t initial_len)
 	return result;
 }
 
-/*static struct ppa ppa_hash_to_ppa(struct ssd *ssd, struct ppa_hash ppa_hash) 
-{
-	struct ppa ppa; 
+static int32_t get_vba_from_table(struct ssd * ssd, struct ppa * ppa, int32_t lpa) {
+	int32_t vba, hid;
+	uint32_t lpa_md5;
+	uint64_t md5_res;
+	size_t len = sizeof(lpa);
 
-	struct write_pointer *wpp = &ssd->wp;
-	
-	ppa.ppa = 0;
-	ppa.g.ch = 0;
-	ppa.g.lun = 0;
-	ppa.g.pg = wpp->pg;
-	ppa.g.blk = wpp->blk;
-	ppa.g.pl = 0;
-	ftl_assert(ppa.g.pl == 0);
+	if(ppa->hid == -1 || ppa->ppid == -1 || ppa->ppa_hash == -1) {
+		ftl_debug("[HASH READ ERROR] hash mapping info returns -1 \n");
+		ftl_debug("lpa: %d   hid: %d   ppid: %d   ppa_hash: %d \n", lpa, ppa->hid, ppa->ppid, ppa->ppa_hash);
+	}
 
+	hid = ppa->hid;
 
-	ppa.hid = ppa_hash.hid; 
-	ppa.ppid = ppa_hash.ppid; 
+	lpa_md5 = lpa >> ssd->lpa_sft;
+	md5_res = md5_u(&lpa_md5, len);
 
-	return ppa; 
-}*/
+	vba = get_vba_from_md5(md5_res, hid);
+
+	return vba;
+}
+
 
 struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa) 
 {
@@ -220,6 +256,8 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 
 	struct ppa return_ppa; 
 
+	//H_OOB *hash_OOB = &(ssd->hash_OOB); 
+	
 	struct ppa *ppa = NULL; 
 	struct ppa *shr_ppa = NULL;
 
@@ -282,7 +320,7 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 
 		if(ppa->ppa_hash != -1) {
 			ppa->hid = hid; 
-
+			ssd->hash_OOB[ppa->ppa_hash].lpa = lpa;
 			break;
 		}
 
@@ -367,7 +405,6 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 					printf("\nHID: %d,\tPBA: %d,\tINVALID: %d\n", hid, pba, block->ipc);
 					hid = hid + 1;
 				}
-				// exit(3);
 				ppa->ppa_hash = -1;
 
 				return_ppa.ppa = 0;
@@ -379,6 +416,7 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 				ftl_assert(return_ppa.g.pl == 0);
 
 
+				ftl_debug("[HASH WRITE ERROR] HASH COLLISION CANNOT BE HANDLED for lpa %d \n", lpa);
 				return return_ppa;
 			}
 
@@ -389,7 +427,11 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 		}
 	}
 
+			
+	ssd->hash_OOB[ppa->ppa_hash].lpa = lpa;
+
 	ppa->hid = hid;
+
 	return_ppa.ppa = 0;
 	return_ppa.g.ch = ppa->g.ch;
 	return_ppa.g.lun = ppa->g.lun;
@@ -398,273 +440,58 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 	return_ppa.g.pl = ppa->g.pl;
 	ftl_assert(return_ppa.g.pl == 0);
 
-
-
-
-
 	return return_ppa;
 }
 
 
 
-///////////////////////////////////////////////////////////////////
-/* 
-   uint32_t hash_create(lower_info *li, algorithm *algo){
-	int temp, bit_cnt, blk_cnt;
-	printf("Start creating hash-based FTL\n");
 
-	_g_nop = _NOP;
-	_g_nob = _NOS;
-	_g_ppb = _PPS;
+/* Function: hash_get
+ * Process: 
+ * gives pull request to lower level.
+ * reads mapping data.
+ * !!if not mapped, does not pull!!
+ */
 
-	gc_count = 0;
-	re_gc_count = 0;
-	re_page_count = 0;
-
-	for(int i = 0; i < _g_ppb; i++){
-		num_val_victim[i] = 0;
-	}
-
-	// check the number of page offset bits
-	temp = _g_ppb;
-	bit_cnt = 0;
-	while(temp != 0){
-		temp = temp/2;
-		bit_cnt++;
-	}
-
-	num_hid = 6;
-	num_page_off = bit_cnt - 1;
-	num_ppid = num_page_off;
-	hid_secondary = pow(2, num_hid);
-
-	temp = _g_nob;
-	blk_cnt = 0;
-	while(temp != 0){
-		temp = temp/2;
-		blk_cnt++;
-	}
-	blk_cnt--;
-	num_vbt = _g_nob - 1;
-
-	lpa_sft = 8;
-
-	num_write = 0;
-	num_copy = 0;
-
-	for(int i=0; i<4; i++){
-		shr_read_cnt[i] = 0;
-	}
-
-	// Map lower info
-	algo->li = li;
-
-	//print information
-	print_algo_log();
-
-	bm = BM_Init(_g_nob, _g_ppb, 0, 1);
-
-	BM_Queue_Init(&free_b);
-	for(int i = 0; i < (_g_nob - num_vbt); i++){
-		BM_Enqueue(free_b, &bm->barray[i + num_vbt]);
-	}
-
-	bm->qarray[0] = free_b;
-
-	pri_table = (PRIMARY_TABLE*)malloc(sizeof(PRIMARY_TABLE) * _g_nop);
-	hash_OOB = (H_OOB*)malloc(sizeof(H_OOB) * _g_nop);
-	vbt = (VIRTUAL_BLOCK_TABLE*)malloc(sizeof(VIRTUAL_BLOCK_TABLE) * num_vbt);
-
-	// initialize primary table & oob
-	for(int i = 0; i < _g_nop; i++){
-		pri_table[i].hid = 0;
-		pri_table[i].ppid = -1;
-		pri_table[i].ppa = -1;
-
-		pri_table[i].state = CLEAN;
-
-		hash_OOB[i].lpa = -1;
-	}
-
-	// initialize virtual block table
-	for(int i = 0; i < num_vbt; i++){
-		vbt[i].pba = i;
-		vbt[i].state = CLEAN;
-	}
-
-	return 0;
-}
-
-void *hash_end_req(algo_req* input){
-	hash_params *params = (hash_params*)input->params;
-	value_set *temp_v = params->value;
-	request *res = input->parents;
-	int lat_idx;
-
-	switch(params->type){
-		case DATA_R:			
-			if(res){
-				gettimeofday(&read_end[res->key],NULL);
-				timersub(&read_end[res->key],&read_start[res->key],&read_time);
-				lat_idx = read_time.tv_usec / 10;
-				read_latency_t[lat_idx]++;
-				res->end_req(res);
-			}
-			break;
-		case DATA_W:
-			if(res){
-				res->end_req(res);
-			}
-			break;
-		case GC_R:
-			gc_load++;
-			break;
-		case GC_W:
-			gc_load++;
-			inf_free_valueset(temp_v, FS_MALLOC_W);
-			break;
-	}
-	free(params);
-	free(input);
-	return NULL;
-}
-
-void hash_destroy(lower_info *li, algorithm *algo){
-	FILE *fp_out;
-	FILE *vbt_out;
-	FILE *bl_out;
-	FILE *val_victim_out;
-
-	puts("");
-	printf("---[Hash FTL Summary]:\n");
-	printf("NUM of GC: %d\n", gc_count);
-	printf("Requested Writes: %d\n", num_write);
-	printf("Copied Writes: %d\n", num_copy);
-	printf("WAF: %d \n", ((num_write+num_copy)*100/num_write));
-
-	
-	printf("\n---------------------  [DONE]  ---------------------\n\n");
-
-	// print FTL info to .txt file
-	fp_out = fopen("result/ftl_info.txt", "w");
-	fprintf(fp_out, "The number of HID bits: %d\t\r\n", num_hid);
-	fprintf(fp_out, "The number of Page offset bits: %d\t\r\n", num_page_off);
-	fprintf(fp_out, "# of gc: %d\r\n", gc_count);
-	fprintf(fp_out, "Requested writes: %d\r\n", num_write);
-	fprintf(fp_out, "Copied writes: %d\r\n", num_copy);
-	fprintf(fp_out, "WAF: %d\r\n", ((num_write+num_copy)*100/num_write));
-	fprintf(fp_out, "LPA\tPPA\tHID\tPPID\r\n");
-
-	for(int i = 0 ; i < _g_nop ; i++){
-		fprintf(fp_out, "%d\t", i);
-		fprintf(fp_out, "%d\t", pri_table[i].ppa);
-		fprintf(fp_out, "%d\t", pri_table[i].hid);
-		fprintf(fp_out, "%d\t\r\n", pri_table[i].ppid);
-	}
-	fclose(fp_out);
-
-	// print blk info to .txt file
-	bl_out = fopen("result/blk_info.txt", "w");
-	fprintf(bl_out, "Total block: %d\r\n", _g_nob);
-	fprintf(bl_out, "Pages per block: %d\r\n", _g_ppb);
-	fprintf(bl_out, "PBA\tWrite Offset\tInvalid\r\n");
-
-	for(int i = 0 ; i < _g_nob; i++){
-		fprintf(bl_out, "%d\t", i);
-		fprintf(bl_out, "%d\t\t", bm->barray[i].wr_off);
-		fprintf(bl_out, "%d\t\r\n", bm->barray[i].Invalid);
-	}
-	fclose(bl_out);
-
-	// print blk info to .txt file
-	vbt_out = fopen("result/vbt_info.txt", "w");
-	fprintf(vbt_out, "Total block: %d\r\n", _g_nob);
-	fprintf(vbt_out, "Pages per block: %d\r\n", _g_ppb);
-	fprintf(vbt_out, "VBA\tPBA\r\n");
-
-	for(int i = 0 ; i < _g_nob; i++){
-		fprintf(vbt_out, "%d\t", i);
-		fprintf(vbt_out, "%d\t\r\n", vbt[i].pba);
-	}
-	fclose(vbt_out);
-
-	val_victim_out = fopen("result/GC_valid_page_info.txt", "w");
-	fprintf(val_victim_out, "Total GC: %d\r\n", gc_count);
-	fprintf(val_victim_out, "Valid Page Copy: %d\r\n", num_copy);
-	fprintf(val_victim_out, "# of pages\tcount\r\n");
-
-	for(int i = 0 ; i < _g_ppb; i++){
-		fprintf(val_victim_out, "%d\t", i);
-		fprintf(val_victim_out, "%d\t\r\n", num_val_victim[i]);
-	}
-	fclose(val_victim_out);
-
-	val_victim_out = fopen("result/read_lat_info.txt", "w");
-	fprintf(val_victim_out, "us\tcount\r\n");
-
-	for(int i = 0 ; i < 8000; i++){
-		fprintf(val_victim_out, "%d\t", i * 10);
-		fprintf(val_victim_out, "%d\t\r\n", read_latency_t[i]);
-	}
-	fclose(val_victim_out);
-
-	BM_Free(bm);
-
-
-	free(pri_table);
-	free(vbt);
-	free(hash_OOB);
-}
-uint32_t hash_get(request* const req){
-	int32_t lpa;
-	int32_t ppa;
+int hash_read(struct ssd *ssd, struct ppa * ppa, uint64_t lpn) {
+	int32_t found_ppa;
 
 	// shared virtual block variables
 	int32_t vba, vba_pos, vba_srt, vba_temp, pba;
 	int i;
 
-	bench_algo_start(req);
-	lpa = req->key;
-	gettimeofday(&read_start[lpa],NULL);
+	//H_OOB *hash_OOB = &(ssd->hash_OOB); 
+
 
 	// shared virtual block read process
-	vba = get_vba_from_table(lpa);
+	vba = get_vba_from_table(ssd, ppa, lpn);
+
 	if(vba == -1){
-		bench_algo_end(req);
-		req->type = FS_NOTFOUND_T;
-		req->end_req(req);
-		return 1;
+		ftl_debug("[HASH READ ERROR] returned vba is -1 of lpn \n", lpn);
 	}
 
 	vba_pos = vba % 4;
 	vba_srt = vba - vba_pos;
 
-	bench_algo_end(req);
-
 	for(i = 0; i < 4; i++){
 		vba_temp = vba_srt + vba_pos;
-		pba = vbt[vba_temp].pba;
-		ppa = pba * _g_ppb + pri_table[lpa].ppid;
+		pba = (ssd->vbt[vba_temp]).pba;
+		found_ppa = pba * BLKS_PER_PL + ppa->ppid;
 
-		if(hash_OOB[ppa].lpa == lpa){
-			if(ppa != pri_table[lpa].ppa){
+		if(ssd->hash_OOB[found_ppa].lpa == lpn){
+			if(found_ppa != ppa->ppa){
 				printf("\nppa mismatch\n");
-				printf("\n%dth read\n", i);
-				printf("\nlpa:%d\n", lpa);
-				printf("\nppa:%d\n", ppa);
-				printf("\nppa table:%d\n", pri_table[lpa].ppa);
-				printf("\nppa OOB:%d\n", hash_OOB[ppa].lpa);
-				exit(3);
+			
 			}
-			__hashftl.li->read(ppa, PAGESIZE, req->value, ASYNC, assign_pseudo_req(DATA_R, NULL, req));
-			shr_read_cnt[i]++;
+			// shr_read_cnt[i]++;
 			return 0;
 		}	
 		vba_pos = (vba_pos + 1) % 4;
 	}
 
 	// ERROR 
-	printf("\nppa miss\n");	
+	ftl_debug("\nppa miss\n");	
+	/*
 	printf("\nlpa:%d\n", lpa);
 	printf("\nppa OOB:%d\n", hash_OOB[pri_table[lpa].ppa].lpa);
 	printf("\nppa table:%d\n", pri_table[lpa].ppa);
@@ -675,72 +502,6 @@ uint32_t hash_get(request* const req){
 	printf("\npba:%d\n", ppa);
 	for(int i = 0; i < 4 ; i++){
 		printf(" |Read %d: %d\n", i+1, shr_read_cnt[i]);
-	}
-	exit(3);
-	return 0;
-	// 
+	} */
+	return -1; 
 }
-
-uint32_t hash_set(request* const req){
-	int32_t lpa;
-	int32_t ppa;
-	int32_t hid = 0;
-	int32_t cal_ppid = 0;
-	Block *block;
-
-	lpa = req->key;
-	if(lpa > RANGE + 1){ 
-		printf("range error %d\n", lpa);
-		exit(3);
-	}
-	hid = 1;
-	ppa = alloc_page(lpa, &cal_ppid, &hid);
-
-	__hashftl.li->write(ppa, PAGESIZE, req->value, ASYNC, assign_pseudo_req(DATA_W, NULL, req));
-
-	num_write++;
-
-	//already mapped case.(update)
-	if(pri_table[lpa].hid != 0){
-		BM_InvalidatePage(bm , pri_table[lpa].ppa);
-		hash_OOB[pri_table[lpa].ppa].lpa = -1; 
-	}
-
-	// put information to table and validate page
-	pri_table[lpa].state = H_VALID;
-	pri_table[lpa].ppa = ppa;
-	pri_table[lpa].hid = hid;
-	pri_table[lpa].ppid = cal_ppid;
-
-	block = &bm->barray[BM_PPA_TO_PBA(ppa)];
-	block->wr_off++;
-
-	BM_ValidatePage(bm, ppa);
-	hash_OOB[ppa].lpa = lpa;
-
-	return 0;
-}
-
-
-uint32_t hash_remove(request* const req){
-	int32_t lpa;
-	int32_t ppa;
-
-	bench_algo_start(req);
-	lpa = req->key;
-	if (lpa > RANGE + 1) {
-		printf("range error %d\n",lpa);
-		exit(3);
-	}
-
-	ppa = pri_table[lpa].ppa;
-
-	pri_table[lpa].ppa = -1; //reset to default.
-	hash_OOB[ppa].lpa = -1; //reset reverse_table to default.
-	pri_table[lpa].hid = 0;
-	pri_table[lpa].state = CLEAN;
-
-	BM_InvalidatePage(bm, ppa);
-	bench_algo_end(req);
-	return 0;
-} */ 

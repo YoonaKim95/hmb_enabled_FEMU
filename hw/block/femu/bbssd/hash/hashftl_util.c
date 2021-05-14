@@ -86,24 +86,24 @@ int32_t check_written( int32_t	pba, int32_t lpa, int32_t* cal_ppid)
 /* Func: get_vba_from_table 
  * get vba from md5
  */
-int32_t get_vba_from_table(int32_t lpa){
+int32_t get_vba_from_table(struct ssd * ssd, struct ppa * ppa, int32_t lpa){
 	int32_t vba, hid;
 	uint32_t lpa_md5;
 	uint64_t md5_res;
 	size_t len = sizeof(lpa);
 
-	// this find logic is for convenience you should change it if you want real performance
-
-	// Read process
-	if(pri_table[lpa].state == CLEAN){
-		return -1;
+	if(ppa->hid == -1 || ppa->ppid == -1 || ppa->ppa_hash == -1) {
+		ftl_debug("[HASH READ ERROR] hash mapping info returns -1 \n");
+		ftl_debug("lpa: %d   hid: %d   ppid: %d   ppa_hash: %d \n", lpa, ppa->hid, ppa->ppid, ppa->ppa_hash);
 	}
-	hid = pri_table[lpa].hid;
+
+	hid = ppa.hid;
 
 	lpa_md5 = lpa >> lpa_sft;
 	md5_res = md5_u(&lpa_md5, len);
 
 	vba = get_vba_from_md5(md5_res, hid);
+
 	return vba;
 }
 

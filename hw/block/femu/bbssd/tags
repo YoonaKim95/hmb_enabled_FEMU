@@ -4,7 +4,11 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-BLK_BITS	ftl.h	48;"	d
+ADDR_BITS	ftl.h	16;"	d
+ADDR_BITS	ftl.h	20;"	d
+AreAllFramesFull	hmb_lru.c	/^int AreAllFramesFull(hmb_Queue* queue)$/;"	f
+BLKS_PER_PL	ftl.h	28;"	d
+BLK_BITS	ftl.h	73;"	d
 BM_START_SECTOR_NB	common.h	62;"	d
 CHANNEL_BLOCKING	common.h	21;"	d
 CHANNEL_IS_EMPTY	common.h	173;"	d
@@ -12,8 +16,11 @@ CHANNEL_IS_ERASE	common.h	176;"	d
 CHANNEL_IS_READ	common.h	175;"	d
 CHANNEL_IS_WRITE	common.h	174;"	d
 CHIP_BLOCKING	common.h	22;"	d
-CH_BITS	ftl.h	53;"	d
+CH_BITS	ftl.h	78;"	d
 CH_OP	common.h	169;"	d
+CLEAN	ftl.h	17;"	d
+CLEAN	hash/hashftl.h	23;"	d
+CLEAN	hashftl.h	1;"	d
 COLD_RAN	common.h	164;"	d
 COLD_RAN_WRITE	common.h	130;"	d
 CONT_SEQ_WRITE	common.h	127;"	d
@@ -52,6 +59,11 @@ C__victimAll_seg_id	hmb_types.h	/^	int16_t  C__victimAll_seg_id;         \/* 2by
 C__victimRc_offset	hmb_types.h	/^	uint32_t C__victimRc_offset;          \/* 4bytes (acc: 109) *\/$/;"	m	struct:HmbMeta
 C__victimRc_seg_id	hmb_types.h	/^	int16_t  C__victimRc_seg_id;          \/* 2bytes (acc: 105) *\/$/;"	m	struct:HmbMeta
 DATA_BLOCK	common.h	143;"	d
+DATA_R	hash/hashftl.h	18;"	d
+DATA_W	hash/hashftl.h	19;"	d
+DIRTY	ftl.h	18;"	d
+DIRTY	hash/hashftl.h	24;"	d
+DIRTY	hashftl.h	2;"	d
 EMPTY_BLOCK	common.h	134;"	d
 EMPTY_DATA_BLOCK	common.h	144;"	d
 EMPTY_RAN_BLOCK	common.h	138;"	d
@@ -59,6 +71,7 @@ EMPTY_RAN_COLD_BLOCK	common.h	140;"	d
 EMPTY_RAN_HOT_BLOCK	common.h	142;"	d
 EMPTY_SEQ_BLOCK	common.h	136;"	d
 ERASE	common.h	186;"	d
+Enqueue	hmb_lru.c	/^int Enqueue(hmb_Queue* queue, hmb_Hash* hash, unsigned pageNumber)$/;"	f
 FAIL	common.h	122;"	d
 FEMU_DISABLE_DELAY_EMU	ftl.h	/^    FEMU_DISABLE_DELAY_EMU = 4,$/;"	e	enum:__anon4
 FEMU_DISABLE_GC_DELAY	ftl.h	/^    FEMU_DISABLE_GC_DELAY = 2,$/;"	e	enum:__anon4
@@ -73,11 +86,15 @@ GC_IO	ftl.h	/^    GC_IO = 1,$/;"	e	enum:__anon2
 GC_ON	common.h	37;"	d
 GC_ON	common.h	46;"	d
 GC_ON	common.h	63;"	d
+GC_R	hash/hashftl.h	20;"	d
 GC_READ	common.h	187;"	d
 GC_TRIGGER_OVERALL	common.h	38;"	d
 GC_TRIGGER_OVERALL	common.h	47;"	d
 GC_VICTIM_OVERALL	common.h	39;"	d
+GC_W	hash/hashftl.h	21;"	d
 GC_WRITE	common.h	188;"	d
+HASH_FTL	ftl.h	10;"	d
+HID_BITS	ftl.h	14;"	d
 HMB_CONFIG_NUMBER_OF_TABLE_BITMAP_PARTS	hmb_config.h	8;"	d
 HMB_CTRL	hmb.c	/^HmbCtrl HMB_CTRL;$/;"	v
 HMB_DEBUG_TIME	hmb_utils.c	/^HmbDebugTime HMB_DEBUG_TIME;$/;"	v
@@ -89,6 +106,7 @@ HMB_DEBUG__N_REQUESTS	hmb_debug.c	/^uint64_t HMB_DEBUG__N_REQUESTS = 0;$/;"	v
 HMB_DEBUG__N_WRITE_REQUESTED_SECTORS	hmb_debug.c	/^uint64_t HMB_DEBUG__N_WRITE_REQUESTED_SECTORS = 0;$/;"	v
 HMB_DEBUG__N_WRITTEN_PAGES	hmb_debug.c	/^uint64_t HMB_DEBUG__N_WRITTEN_PAGES = 0;$/;"	v
 HMB_DEBUG__SUM_OVERFLOWED_TIME	hmb_debug.c	/^uint64_t HMB_DEBUG__SUM_OVERFLOWED_TIME = 0;$/;"	v
+HMB_ENTRIES	hmb.h	5;"	d
 HMB_FOR_READ	hmb_types.h	11;"	d
 HMB_FOR_WRITE	hmb_types.h	12;"	d
 HMB_HASH_MULTIPLIER	hmb_internal.h	61;"	d
@@ -123,6 +141,12 @@ HMB__SE_ST_unit	hmb_types.h	/^	uint32_t HMB__SE_ST_unit;     \/* 4bytes (acc: 10
 HMB__SE_num_max	hmb_types.h	/^	uint32_t HMB__SE_num_max;             \/* 4bytes (acc: 4) *\/$/;"	m	struct:HmbMeta
 HOT_RAN	common.h	165;"	d
 HOT_RAN_WRITE	common.h	129;"	d
+H_INVALID	hash/hashftl.h	26;"	d
+H_INVALID	hashftl.h	4;"	d
+H_OOB	ftl.h	/^} H_OOB;$/;"	t	typeref:struct:hash_OOB
+H_OOB	hash/hashftl.h	/^} H_OOB;$/;"	t	typeref:struct:hash_OOB
+H_VALID	hash/hashftl.h	25;"	d
+H_VALID	hashftl.h	3;"	d
 HmbBitmap32	hmb_types.h	/^typedef uint32_t HmbBitmap32;$/;"	t
 HmbBitmapEmpty	hmb_types.h	/^typedef int32_t HmbBitmapEmpty;$/;"	t
 HmbCtrl	hmb_types.h	/^typedef struct HmbCtrl {$/;"	s
@@ -169,7 +193,10 @@ INVALID	common.h	153;"	d
 INVALID_LPN	ftl.h	7;"	d
 INVALID_PPA	ftl.h	6;"	d
 LATENCY_OP	common.h	171;"	d
-LUN_BITS	ftl.h	52;"	d
+LEFTROTATE	ftl.h	12;"	d
+LEFTROTATE	md5.c	3;"	d	file:
+LUNS_PER_CH	ftl.h	31;"	d
+LUN_BITS	ftl.h	77;"	d
 MAP_READ	common.h	201;"	d
 MAP_WRITE	common.h	202;"	d
 NAND_ERASE	ftl.h	/^    NAND_ERASE = 2,$/;"	e	enum:__anon1
@@ -178,14 +205,23 @@ NAND_PROG_LATENCY	ftl.h	/^    NAND_PROG_LATENCY = 200000,$/;"	e	enum:__anon1
 NAND_READ	ftl.h	/^    NAND_READ =  0,$/;"	e	enum:__anon1
 NAND_READ_LATENCY	ftl.h	/^    NAND_READ_LATENCY = 40000,$/;"	e	enum:__anon1
 NAND_WRITE	ftl.h	/^    NAND_WRITE = 1,$/;"	e	enum:__anon1
+NCHS	ftl.h	32;"	d
 NEW_RAN_WRITE	common.h	128;"	d
 NEW_SEQ_WRITE	common.h	126;"	d
 NOOP	common.h	183;"	d
-PG_BITS	ftl.h	49;"	d
+OOB_RAM	hash/hashftl.h	/^	H_OOB OOB_RAM;$/;"	m	struct:SRAM
+PGS_PER_BLK	ftl.h	27;"	d
+PG_BITS	ftl.h	74;"	d
 PG_FREE	ftl.h	/^    PG_FREE = 0,$/;"	e	enum:__anon3
 PG_INVALID	ftl.h	/^    PG_INVALID = 1,$/;"	e	enum:__anon3
 PG_VALID	ftl.h	/^    PG_VALID = 2$/;"	e	enum:__anon3
-PL_BITS	ftl.h	51;"	d
+PLS_PER_LUN	ftl.h	30;"	d
+PL_BITS	ftl.h	76;"	d
+PRIMARY_TABLE	ftl.h	/^} PRIMARY_TABLE;$/;"	t	typeref:struct:primary_table
+PRIMARY_TABLE	hash/hashftl.h	/^} PRIMARY_TABLE;$/;"	t	typeref:struct:primary_table
+PTR_RAM	hash/hashftl.h	/^	PTR PTR_RAM;$/;"	m	struct:SRAM
+QNode	ftl.h	/^typedef struct QNode {$/;"	s
+QNode	ftl.h	/^} QNode;$/;"	t	typeref:struct:QNode
 RAN_BLOCK	common.h	137;"	d
 RAN_COLD_BLOCK	common.h	139;"	d
 RAN_COLD_MERGE_READ	common.h	197;"	d
@@ -205,7 +241,10 @@ REG_IS_ERASE	common.h	181;"	d
 REG_IS_READ	common.h	180;"	d
 REG_IS_WRITE	common.h	179;"	d
 REG_OP	common.h	170;"	d
-SEC_BITS	ftl.h	50;"	d
+ReferencePage	hmb_lru.c	/^int ReferencePage(struct ssd *ssd, unsigned pageNumber)$/;"	f
+SECSZ	ftl.h	24;"	d
+SECS_PER_PAGE	ftl.h	25;"	d
+SEC_BITS	ftl.h	75;"	d
 SEC_FREE	ftl.h	/^    SEC_FREE = 0,$/;"	e	enum:__anon3
 SEC_INVALID	ftl.h	/^    SEC_INVALID = 1,$/;"	e	enum:__anon3
 SEC_VALID	ftl.h	/^    SEC_VALID = 2,$/;"	e	enum:__anon3
@@ -219,7 +258,14 @@ SM__init_entry	hmb_types.h	/^	HmbTime SM__init_entry;$/;"	m	struct:HmbDebugTime
 SM__init_heads	hmb_types.h	/^	HmbTime SM__init_heads;$/;"	m	struct:HmbDebugTime
 SM__init_insert_map_info	hmb_types.h	/^	HmbTime SM__init_insert_map_info;$/;"	m	struct:HmbDebugTime
 SM__init_sorted	hmb_types.h	/^	HmbTime SM__init_sorted;$/;"	m	struct:HmbDebugTime
+SRAM	hash/hashftl.h	/^typedef struct SRAM{$/;"	s
+SRAM	hash/hashftl.h	/^} SRAM;$/;"	t	typeref:struct:SRAM
+SRAM_load	hash/hashftl_util.c	/^value_set* SRAM_load(SRAM* sram, int32_t ppa, int idx){$/;"	f
+SRAM_load	hashftl_util.c	/^value_set* SRAM_load(SRAM* sram, int32_t ppa, int idx){$/;"	f
+SRAM_unload	hash/hashftl_util.c	/^void SRAM_unload(SRAM* sram, int32_t ppa, int idx){$/;"	f
+SRAM_unload	hashftl_util.c	/^void SRAM_unload(SRAM* sram, int32_t ppa, int idx){$/;"	f
 SUCCESS	common.h	121;"	d
+TYPE	hash/hashftl.h	17;"	d
 UNMAPPED_PPA	ftl.h	8;"	d
 UPDATE_END_TIME	common.h	205;"	d
 UPDATE_GC_END_TIME	common.h	207;"	d
@@ -230,21 +276,35 @@ VALID	common.h	152;"	d
 VICTIM_INCHIP	common.h	148;"	d
 VICTIM_NOPARAL	common.h	149;"	d
 VICTIM_OVERALL	common.h	147;"	d
+VIRTUAL_BLOCK_TABLE	ftl.h	/^} VIRTUAL_BLOCK_TABLE;$/;"	t	typeref:struct:virtual_block_table
+VIRTUAL_BLOCK_TABLE	hash/hashftl.h	/^} VIRTUAL_BLOCK_TABLE;$/;"	t	typeref:struct:virtual_block_table
 WHOLE_BLOCKING	common.h	20;"	d
 WRITE	common.h	185;"	d
 _COMMON_H_	common.h	9;"	d
 __FEMU_FTL_H	ftl.h	2;"	d
 __HMB_DEBUG_H__	hmb_debug.h	33;"	d
+__H_HASHFTL__	hash/hashftl.h	2;"	d
 __SSD__HMB_CONFIG_H__	hmb_config.h	2;"	d
-__SSD__HMB_H__	hmb.h	30;"	d
+__SSD__HMB_H__	hmb.h	3;"	d
 __SSD__HMB_INTERNAL_H__	hmb_internal.h	30;"	d
 __SSD__HMB_SPACEMGMT_H__	hmb_spaceMgmt.h	30;"	d
 __SSD__HMB_TYPES_H__	hmb_types.h	2;"	d
 __SSD__HMB_UTILS_H__	hmb_utils.h	2;"	d
+__hashftl	hash/hashftl.c	/^algorithm __hashftl = {$/;"	v
+_g_nob	hash/hashftl.c	/^int32_t _g_nob;				\/\/ number of block$/;"	v
+_g_nop	hash/hashftl.c	/^int32_t _g_nop;				\/\/ number of page$/;"	v
+_g_ppb	hash/hashftl.c	/^int32_t _g_ppb;				\/\/ page per block$/;"	v
 addr	hmb_types.h	/^	HmbMappedAddr      addr;$/;"	m	struct:HmbMapInfo
 addr	hmb_types.h	/^	HmbMappedAddr      addr;$/;"	m	struct:Hmb_FTL_MapInfo
 addr	hmb_types.h	/^	uint64_t    addr; \/* 8bytes (acc: 8) *\/$/;"	m	struct:HmbEntry
 addr_bits	ftl.h	/^	uint32_t addr_bits;$/;"	m	struct:ssd
+alloc_page	hash/hashftl_util.c	/^int32_t alloc_page(int32_t lpa, int32_t* cal_ppid, int32_t* hid){$/;"	f
+alloc_page	hashftl_util.c	/^int32_t alloc_page(int32_t lpa, int32_t* cal_ppid, int32_t* hid){$/;"	f
+array	ftl.h	/^    QNode** array; \/\/ an array of queue nodes$/;"	m	struct:hmb_Hash
+assign_pseudo_req	hash/hashftl_util.c	/^algo_req* assign_pseudo_req(TYPE type, value_set *temp_v, request *req){$/;"	f
+assign_pseudo_req	hashftl_util.c	/^algo_req* assign_pseudo_req(TYPE type, value_set *temp_v, request *req){$/;"	f
+b_heap	hash/hashftl.c	/^Heap *b_heap;$/;"	v
+barray	ftl.h	/^	struct nand_block *barray;$/;"	m	struct:ssd	typeref:struct:ssd::nand_block
 bb_admin_cmd	bb.c	/^static uint16_t bb_admin_cmd(FemuCtrl *n, NvmeCmd *cmd)$/;"	f	file:
 bb_flip	bb.c	/^static void bb_flip(FemuCtrl *n, NvmeCmd *cmd)$/;"	f	file:
 bb_init	bb.c	/^static void bb_init(FemuCtrl *n, Error **errp)$/;"	f	file:
@@ -259,6 +319,7 @@ blks_per_ch	ftl.h	/^    int blks_per_ch;  \/* # of blocks per channel *\/$/;"	m	
 blks_per_line	ftl.h	/^    int blks_per_line;$/;"	m	struct:ssdparams
 blks_per_lun	ftl.h	/^	int blks_per_lun; \/* # of blocks per LUN *\/$/;"	m	struct:ssdparams
 blks_per_pl	ftl.h	/^    int blks_per_pl;  \/* # of blocks per plane *\/$/;"	m	struct:ssdparams
+bm	hash/hashftl.c	/^BM_T *bm;$/;"	v
 bm	hmb_types.h	/^	HmbMappedAddr *bm;$/;"	m	struct:HmbSpaceMgmtCtrl
 bm_empty	hmb_types.h	/^	HmbMappedAddr *bm_empty;$/;"	m	struct:HmbSpaceMgmtCtrl
 bm_empty_table	hmb_types.h	/^	HmbMappedAddr *bm_empty_table;$/;"	m	struct:HmbSpaceMgmtCtrl
@@ -267,16 +328,24 @@ busy	ftl.h	/^    bool busy;$/;"	m	struct:nand_lun
 busy	ftl.h	/^    bool busy;$/;"	m	struct:ssd_channel
 cache_unit	hmb_types.h	/^	uint64_t cache_unit;$/;"	m	struct:HmbSpaceMgmtCtrl
 cache_unit_bits	hmb_types.h	/^	uint8_t  cache_unit_bits;$/;"	m	struct:HmbSpaceMgmtCtrl
+capacity	ftl.h	/^    int capacity; \/\/ how many pages can be there$/;"	m	struct:hmb_Hash
+ch	ftl.h	/^	struct ssd_channel *ch;$/;"	m	struct:ssd	typeref:struct:ssd::ssd_channel
 ch	ftl.h	/^            uint64_t ch  : CH_BITS;$/;"	m	struct:ppa::__anon5::__anon6
 ch	ftl.h	/^    int ch;$/;"	m	struct:write_pointer
-ch	ftl.h	/^    struct ssd_channel *ch;$/;"	m	struct:ssd	typeref:struct:ssd::ssd_channel
 ch_xfer_lat	ftl.h	/^    int ch_xfer_lat;  \/* channel transfer latency for one page in nanoseconds$/;"	m	struct:ssdparams
 check_addr	ftl.c	/^static inline void check_addr(int a, int max)$/;"	f	file:
 check_params	ftl.c	/^static void check_params(struct ssdparams *spp)$/;"	f	file:
+check_written	hash/hashftl_util.c	/^int32_t check_written( int32_t	pba, int32_t lpa, int32_t* cal_ppid)$/;"	f
+check_written	hashftl.c	/^static struct ppa *check_written(struct ssd *ssd, int32_t pba)$/;"	f	file:
+check_written	hashftl_util.c	/^int32_t check_written( int32_t	pba, int32_t lpa, int32_t* cal_ppid)$/;"	f
 clean_one_block	ftl.c	/^static void clean_one_block(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 cmd	ftl.h	/^    int cmd;$/;"	m	struct:nand_cmd
+count	ftl.h	/^    unsigned count; \/\/ Number of filled frames$/;"	m	struct:hmb_Queue
+createHash	hmb_lru.c	/^hmb_Hash* createHash(int capacity)$/;"	f
+createQueue	hmb_lru.c	/^hmb_Queue* createQueue(int numberOfFrames)$/;"	f
 curline	ftl.h	/^    struct line *curline;$/;"	m	struct:write_pointer	typeref:struct:write_pointer::line
 dataplane_started_ptr	ftl.h	/^    bool *dataplane_started_ptr;$/;"	m	struct:ssd
+deQueue	hmb_lru.c	/^void deQueue(hmb_Queue* queue)$/;"	f
 dev_pci	hmb_types.h	/^    void *dev_pci;$/;"	m	struct:HmbCtrl
 dirty	hmb_types.h	/^	uint64_t dirty  :  1;  $/;"	m	struct:HmbSharedEnt
 do_gc	ftl.c	/^static int do_gc(struct ssd *ssd, bool force)$/;"	f	file:
@@ -296,37 +365,67 @@ entry_id	hmb_types.h	/^	int32_t			   entry_id; $/;"	m	struct:Hmb_FTL_MapInfo
 entry_id	hmb_types.h	/^	int32_t            entry_id;$/;"	m	struct:HmbMapInfo
 erase_cnt	ftl.h	/^    int erase_cnt;$/;"	m	struct:nand_block
 filled	hmb_types.h	/^	HmbBitmap32 filled;$/;"	m	struct:HmbSharedBitmapEnt
+free_b	hash/hashftl.c	/^b_queue *free_b;$/;"	v
 free_line_cnt	ftl.h	/^    int free_line_cnt;$/;"	m	struct:line_mgmt
 free_line_list	ftl.h	/^    QTAILQ_HEAD(free_line_list, line) free_line_list;$/;"	m	struct:line_mgmt
-ftl_assert	ftl.h	240;"	d
-ftl_assert	ftl.h	242;"	d
-ftl_debug	ftl.h	224;"	d
-ftl_debug	ftl.h	227;"	d
-ftl_err	ftl.h	231;"	d
-ftl_log	ftl.h	234;"	d
+front	ftl.h	/^    QNode *front, *rear;$/;"	m	struct:hmb_Queue
+ftl_assert	ftl.h	337;"	d
+ftl_assert	ftl.h	339;"	d
+ftl_debug	ftl.h	321;"	d
+ftl_debug	ftl.h	324;"	d
+ftl_err	ftl.h	328;"	d
+ftl_log	ftl.h	331;"	d
 ftl_thread	ftl.c	/^static void *ftl_thread(void *arg)$/;"	f	file:
 ftl_thread	ftl.h	/^    QemuThread ftl_thread;$/;"	m	struct:ssd
 full_line_cnt	ftl.h	/^    int full_line_cnt;$/;"	m	struct:line_mgmt
 full_line_list	ftl.h	/^    QTAILQ_HEAD(full_line_list, line) full_line_list;$/;"	m	struct:line_mgmt
 g	ftl.h	/^        } g;$/;"	m	union:ppa::__anon5	typeref:struct:ppa::__anon5::__anon6
+gc_count	hash/hashftl.c	/^int32_t gc_count;			\/\/ number of total gc$/;"	v
 gc_endtime	ftl.h	/^    uint64_t gc_endtime;$/;"	m	struct:nand_lun
 gc_endtime	ftl.h	/^    uint64_t gc_endtime;$/;"	m	struct:ssd_channel
+gc_load	hash/hashftl.c	/^int32_t gc_load;$/;"	v
+gc_pri	hash/hashftl.c	/^int32_t gc_pri;$/;"	v
 gc_read_page	ftl.c	/^static void gc_read_page(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 gc_thres_lines	ftl.h	/^    int gc_thres_lines;$/;"	m	struct:ssdparams
 gc_thres_lines_high	ftl.h	/^    int gc_thres_lines_high;$/;"	m	struct:ssdparams
 gc_thres_pcent	ftl.h	/^    double gc_thres_pcent;$/;"	m	struct:ssdparams
 gc_thres_pcent_high	ftl.h	/^    double gc_thres_pcent_high;$/;"	m	struct:ssdparams
+gc_val	hash/hashftl.c	/^int32_t gc_val;$/;"	v
 gc_write_page	ftl.c	/^static uint64_t gc_write_page(struct ssd *ssd, struct ppa *old_ppa)$/;"	f	file:
-get_blk	ftl.c	/^static inline struct nand_block *get_blk(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
+get_blk	ftl.c	/^struct nand_block *get_blk(struct ssd *ssd, struct ppa *ppa)$/;"	f
 get_ch	ftl.c	/^static inline struct ssd_channel *get_ch(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
+get_hash	hmb_lru.c	/^static inline hmb_Hash *get_hash(struct ssd *ssd) $/;"	f	file:
 get_line	ftl.c	/^static inline struct line *get_line(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 get_lun	ftl.c	/^static inline struct nand_lun *get_lun(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 get_maptbl_ent	ftl.c	/^static inline struct ppa get_maptbl_ent(struct ssd *ssd, uint64_t lpn)$/;"	f	file:
 get_new_page	ftl.c	/^static struct ppa get_new_page(struct ssd *ssd)$/;"	f	file:
+get_new_page_hash	hashftl.c	/^struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa) $/;"	f
 get_next_free_line	ftl.c	/^static struct line *get_next_free_line(struct ssd *ssd)$/;"	f	file:
 get_pg	ftl.c	/^static inline struct nand_page *get_pg(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 get_pl	ftl.c	/^static inline struct nand_plane *get_pl(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
+get_queue	hmb_lru.c	/^static inline hmb_Queue *get_queue(struct ssd *ssd) $/;"	f	file:
 get_rmap_ent	ftl.c	/^static inline uint64_t get_rmap_ent(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
+get_vba_from_md5	hash/hashftl_util.c	/^int32_t get_vba_from_md5(uint64_t md5_result, int32_t hid){$/;"	f
+get_vba_from_md5	hashftl.c	/^static int32_t get_vba_from_md5(uint64_t md5_result, int32_t hid){$/;"	f	file:
+get_vba_from_md5	hashftl_util.c	/^int32_t get_vba_from_md5(uint64_t md5_result, int32_t hid){$/;"	f
+get_vba_from_table	hash/hashftl_util.c	/^int32_t get_vba_from_table(int32_t lpa){$/;"	f
+get_vba_from_table	hashftl_util.c	/^int32_t get_vba_from_table(int32_t lpa){$/;"	f
+hash_OOB	ftl.h	/^	H_OOB *hash_OOB;$/;"	m	struct:ssd
+hash_OOB	ftl.h	/^typedef struct hash_OOB{$/;"	s
+hash_OOB	hash/hashftl.c	/^H_OOB *hash_OOB;$/;"	v
+hash_OOB	hash/hashftl.h	/^typedef struct hash_OOB{$/;"	s
+hash_create	hash/hashftl.c	/^uint32_t hash_create(lower_info *li, algorithm *algo){$/;"	f
+hash_destroy	hash/hashftl.c	/^void hash_destroy(lower_info *li, algorithm *algo){$/;"	f
+hash_end_req	hash/hashftl.c	/^void *hash_end_req(algo_req* input){$/;"	f
+hash_garbage_collection	hash/hashftl_gc.c	/^int32_t hash_garbage_collection(int32_t pba, int32_t vba){$/;"	f
+hash_garbage_collection	hashftl.c	/^static int hash_garbage_collection(struct ssd *ssd, uint32_t max_pba, uint32_t max_vba) {$/;"	f	file:
+hash_garbage_collection	hashftl_gc.c	/^int32_t hash_garbage_collection(int32_t pba, int32_t vba){$/;"	f
+hash_get	hash/hashftl.c	/^uint32_t hash_get(request* const req){$/;"	f
+hash_mutex	hash/hashftl.h	/^	dl_sync hash_mutex;$/;"	m	struct:hash_params
+hash_params	hash/hashftl.h	/^typedef struct hash_params{$/;"	s
+hash_params	hash/hashftl.h	/^} hash_params;$/;"	t	typeref:struct:hash_params
+hash_remove	hash/hashftl.c	/^uint32_t hash_remove(request* const req){$/;"	f
+hash_set	hash/hashftl.c	/^uint32_t hash_set(request* const req){$/;"	f
 heads_ST_mapped	hmb_types.h	/^	HmbMappedAddr* heads_ST_mapped;$/;"	m	struct:HmbSpaceMgmtCtrl
 heads_ST_size	hmb_types.h	/^	uint64_t       heads_ST_size;$/;"	m	struct:HmbSpaceMgmtCtrl
 heads_cnt	hmb_types.h	/^	uint32_t heads_cnt;$/;"	m	struct:HmbSpaceMgmtCtrl
@@ -334,6 +433,11 @@ heads_hash_bit	hmb_types.h	/^	uint8_t  heads_hash_bit; \/* for hashing: # hash b
 heads_split_mapped	hmb_types.h	/^	HmbMappedAddr** heads_split_mapped;$/;"	m	struct:HmbSpaceMgmtCtrl
 heads_split_num	hmb_types.h	/^	uint16_t        heads_split_num;$/;"	m	struct:HmbSpaceMgmtCtrl
 heads_split_unit	hmb_types.h	/^	uint32_t        heads_split_unit;$/;"	m	struct:HmbSpaceMgmtCtrl
+hid	ftl.h	/^	int32_t hid;$/;"	m	struct:primary_table
+hid	ftl.h	/^	uint32_t hid; $/;"	m	struct:ppa
+hid	hash/hashftl.h	/^	int32_t hid;$/;"	m	struct:primary_table
+hid_secondary	ftl.h	/^	int32_t hid_secondary; $/;"	m	struct:ssd
+hid_secondary	hash/hashftl.c	/^int32_t hid_secondary;        \/\/ hid that indicate mapping is at secondary table$/;"	v
 hmb_FTL_mapInfo_delete	hmb_internal.c	/^bool hmb_FTL_mapInfo_delete(Hmb_FTL_MapInfo *target)$/;"	f
 hmb_FTL_mapInfo_free	hmb_internal.c	/^void hmb_FTL_mapInfo_free(Hmb_FTL_MapInfo *target)$/;"	f
 hmb_FTL_mapInfo_get_hashed_idx_by_mapped_addr	hmb_internal.c	/^int64_t hmb_FTL_mapInfo_get_hashed_idx_by_mapped_addr(HmbMappedAddr *addr)$/;"	f
@@ -341,6 +445,10 @@ hmb_FTL_mapInfo_get_hashed_idx_by_obj	hmb_internal.c	/^int64_t hmb_FTL_mapInfo_g
 hmb_FTL_mapInfo_insert	hmb_internal.c	/^bool hmb_FTL_mapInfo_insert(Hmb_FTL_MapInfo *target)$/;"	f
 hmb_FTL_mapInfo_new	hmb_internal.c	/^Hmb_FTL_MapInfo *hmb_FTL_mapInfo_new(void)$/;"	f
 hmb_FTL_mapInfo_search	hmb_internal.c	/^Hmb_FTL_MapInfo *hmb_FTL_mapInfo_search(HmbMappedAddr *addr)$/;"	f
+hmb_Hash	ftl.h	/^typedef struct hmb_Hash {$/;"	s
+hmb_Hash	ftl.h	/^} hmb_Hash;$/;"	t	typeref:struct:hmb_Hash
+hmb_Queue	ftl.h	/^typedef struct hmb_Queue {$/;"	s
+hmb_Queue	ftl.h	/^} hmb_Queue;$/;"	t	typeref:struct:hmb_Queue
 hmb_cache_bm	ftl.h	/^	int *hmb_cache_bm;  \/* hmb cache 4kb unit *\/	$/;"	m	struct:ssd
 hmb_cached	ftl.c	/^static inline uint8_t hmb_cached(struct ssd *ssd, int entry)$/;"	f	file:
 hmb_calloc	hmb.c	/^HmbMappedAddr *hmb_calloc(uint64_t size)$/;"	f
@@ -359,6 +467,8 @@ hmb_init_structure	hmb.c	/^bool hmb_init_structure(void)$/;"	f
 hmb_is_addr_remapped	hmb_internal.c	/^bool hmb_is_addr_remapped; \/* extern-ed in "hmb_internal.h" *\/$/;"	v
 hmb_is_reallocated	hmb.c	/^bool hmb_is_reallocated;$/;"	v
 hmb_lpas_per_blk	ftl.h	/^	int hmb_lpas_per_blk;  \/* total # of lpas can be cached to a HMB block*\/$/;"	m	struct:ssdparams
+hmb_lru_hash	ftl.h	/^	hmb_Hash* hmb_lru_hash;$/;"	m	struct:ssd
+hmb_lru_list	ftl.h	/^	hmb_Queue* hmb_lru_list;$/;"	m	struct:ssd
 hmb_malloc	hmb.c	/^HmbMappedAddr *hmb_malloc(uint64_t size)$/;"	f
 hmb_mapInfo_delete	hmb_internal.c	/^bool hmb_mapInfo_delete(HmbMapInfo *target)$/;"	f
 hmb_mapInfo_free	hmb_internal.c	/^void hmb_mapInfo_free(HmbMapInfo *target)$/;"	f
@@ -496,9 +606,12 @@ host_addr	hmb_types.h	/^	HmbHostAddr        host_addr;$/;"	m	struct:HmbSeg
 id	ftl.h	/^    int id;  \/* line id, the same as corresponding block id *\/$/;"	m	struct:line
 id	hmb_types.h	/^	int16_t            id; $/;"	m	struct:HmbSeg
 id	hmb_types.h	/^	int32_t  id;		 \/* 4bytes (acc: 4) *\/$/;"	m	struct:HmbSegEnt
+init_hmb_LRU_hash	hmb_lru.c	/^hmb_Hash* init_hmb_LRU_hash(int available_FTL_entries) {$/;"	f
+init_hmb_LRU_list	hmb_lru.c	/^hmb_Queue* init_hmb_LRU_list(int num_hmb_entries) {$/;"	f
 inited	hmb_types.h	/^	bool inited;$/;"	m	struct:HmbSpaceMgmtCtrl
 ipc	ftl.h	/^    int ipc; \/* invalid page count *\/$/;"	m	struct:nand_block
 ipc	ftl.h	/^    int ipc; \/* invalid page count in this line *\/$/;"	m	struct:line
+isQueueEmpty	hmb_lru.c	/^int isQueueEmpty(hmb_Queue* queue)$/;"	f
 lba_end	hmb_types.h	/^	int32_t            lba_end; $/;"	m	struct:Hmb_FTL_MapInfo
 lba_start	hmb_types.h	/^	int32_t            lba_start;$/;"	m	struct:Hmb_FTL_MapInfo
 line	ftl.h	/^typedef struct line {$/;"	s
@@ -521,20 +634,30 @@ ll__search_empty_space	hmb_types.h	/^	HmbTime ll__search_empty_space;$/;"	m	stru
 ll__search_map_info	hmb_types.h	/^	HmbTime ll__search_map_info;$/;"	m	struct:HmbDebugTime
 lm	ftl.h	/^    struct line_mgmt lm;$/;"	m	struct:ssd	typeref:struct:ssd::line_mgmt
 lock	hmb_types.h	/^	int32_t  lock;                        \/* 4bytes (acc: 83) *\/$/;"	m	struct:HmbMeta
+lpa	ftl.h	/^	int32_t lpa; $/;"	m	struct:hash_OOB
+lpa	hash/hashftl.h	/^	int32_t lpa;$/;"	m	struct:hash_OOB
+lpa_sft	ftl.h	/^	int32_t lpa_sft;$/;"	m	struct:ssd
+lpa_sft	hash/hashftl.c	/^int32_t lpa_sft;$/;"	v
 lpn	hmb_types.h	/^	uint64_t lpn    : 55;	\/* 8bytes (acc: 28) *\/$/;"	m	struct:HmbSharedEnt
 lun	ftl.h	/^            uint64_t lun : LUN_BITS;$/;"	m	struct:ppa::__anon5::__anon6
 lun	ftl.h	/^    int lun;$/;"	m	struct:write_pointer
 lun	ftl.h	/^    struct nand_lun *lun;$/;"	m	struct:ssd_channel	typeref:struct:ssd_channel::nand_lun
 luns_per_ch	ftl.h	/^    int luns_per_ch;  \/* # of LUNs per channel *\/$/;"	m	struct:ssdparams
+map_for_gc	hash/hashftl_util.c	/^int32_t map_for_gc(int32_t lpa, int32_t ppa, int32_t ppid){$/;"	f
+map_for_gc	hashftl_util.c	/^int32_t map_for_gc(int32_t lpa, int32_t ppa, int32_t ppid){$/;"	f
 mapped_ppa	ftl.c	/^static inline bool mapped_ppa(struct ppa *ppa)$/;"	f	file:
 mappings	hmb_types.h	/^	struct HmbMapInfo** mappings;$/;"	m	struct:HmbCtrl	typeref:struct:HmbCtrl::HmbMapInfo
 mappings_bits	hmb_types.h	/^	uint8_t             mappings_bits;$/;"	m	struct:HmbCtrl
 mappings_hashed_max	hmb_types.h	/^	uint64_t            mappings_hashed_max;$/;"	m	struct:HmbCtrl
-maptbl	ftl.h	/^    struct ppa *maptbl; \/* page level mapping table *\/$/;"	m	struct:ssd	typeref:struct:ssd::ppa
+maptbl	ftl.h	/^	struct ppa *maptbl; \/* page level mapping table *\/$/;"	m	struct:ssd	typeref:struct:ssd::ppa
+maptbl_hash	ftl.h	/^	struct ppa_hash *maptbl_hash; \/* page level mapping table *\/$/;"	m	struct:ssd	typeref:struct:ssd::ppa_hash
 mark_block_free	ftl.c	/^static void mark_block_free(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 mark_line_free	ftl.c	/^static void mark_line_free(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 mark_page_invalid	ftl.c	/^static void mark_page_invalid(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 mark_page_valid	ftl.c	/^static void mark_page_valid(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
+md5	md5.c	/^void md5(uint32_t *initial_msg, size_t initial_len, uint64_t* result)$/;"	f
+md5_u	hashftl.c	/^static uint64_t md5_u(uint32_t *initial_msg, size_t initial_len)$/;"	f	file:
+md5_u	md5.c	/^uint64_t  md5_u(uint32_t *initial_msg, size_t initial_len)$/;"	f
 mem_ret	hmb_types.h	/^	bool     mem_ret;        \/* HMB: Memory Return (from dword 11) *\/$/;"	m	struct:HmbCtrl
 meta_host	hmb_types.h	/^	HmbHostAddr   meta_host;$/;"	m	struct:HmbCtrl
 meta_mapped	hmb_types.h	/^	HmbMappedAddr meta_mapped;$/;"	m	struct:HmbCtrl
@@ -548,6 +671,8 @@ nand_plane	ftl.h	/^struct nand_plane {$/;"	s
 nand_sec_status_t	ftl.h	/^typedef int nand_sec_status_t;$/;"	t
 nblks	ftl.h	/^    int nblks;$/;"	m	struct:nand_plane
 nchs	ftl.h	/^    int nchs;         \/* # of channels in the SSD *\/$/;"	m	struct:ssdparams
+newQNode	hmb_lru.c	/^QNode* newQNode(unsigned pageNumber) {$/;"	f
+next	ftl.h	/^    struct QNode *prev, *next;$/;"	m	struct:QNode	typeref:struct:QNode::
 next	hmb_types.h	/^	struct HmbMapInfo* next;$/;"	m	struct:HmbMapInfo	typeref:struct:HmbMapInfo::HmbMapInfo
 next	hmb_types.h	/^	struct HmbSegEmpty *prev, *next;$/;"	m	struct:HmbSegEmpty	typeref:struct:HmbSegEmpty::
 next	hmb_types.h	/^ 	struct Hmb_FTL_MapInfo* next;$/;"	m	struct:Hmb_FTL_MapInfo	typeref:struct:Hmb_FTL_MapInfo::Hmb_FTL_MapInfo
@@ -558,6 +683,18 @@ npgs	ftl.h	/^    int npgs;$/;"	m	struct:nand_block
 npls	ftl.h	/^    int npls;$/;"	m	struct:nand_lun
 nr_hmb_cache	ftl.h	/^	uint32_t nr_hmb_cache;$/;"	m	struct:ssd
 nsecs	ftl.h	/^    int nsecs;$/;"	m	struct:nand_page
+num_GC	ftl.h	/^	int num_GC; $/;"	m	struct:ssd
+num_copy	hash/hashftl.c	/^int32_t num_copy;$/;"	v
+num_hid	ftl.h	/^	int32_t num_hid; $/;"	m	struct:ssd
+num_hid	hash/hashftl.c	/^int32_t num_hid;              \/\/ number of hid bits$/;"	v
+num_page_off	hash/hashftl.c	/^int32_t num_page_off;          \/\/ number of page offset bits$/;"	v
+num_ppid	ftl.h	/^	int32_t num_ppid;$/;"	m	struct:ssd
+num_ppid	hash/hashftl.c	/^int32_t num_ppid;             \/\/ number of ppid bits$/;"	v
+num_val_victim	hash/hashftl.c	/^int32_t num_val_victim[300];	\/\/victim block valid page count$/;"	v
+num_vbt	ftl.h	/^	int32_t num_vbt;$/;"	m	struct:ssd
+num_vbt	hash/hashftl.c	/^int32_t num_vbt;$/;"	v
+num_write	hash/hashftl.c	/^int32_t num_write;$/;"	v
+numberOfFrames	ftl.h	/^    unsigned numberOfFrames; \/\/ total number of frames$/;"	m	struct:hmb_Queue
 nvme_flush_from_hmb	hmb_spaceMgmt.c	/^bool nvme_flush_from_hmb(void *nvmeReq)$/;"	f
 nvme_register_bbssd	bb.c	/^int nvme_register_bbssd(FemuCtrl *n)$/;"	f
 of_femu	hmb_types.h	/^	HmbTime of_femu;$/;"	m	struct:HmbDebugTimePerRequest
@@ -578,9 +715,12 @@ offset	hmb_types.h	/^	uint32_t offset;     \/* 4bytes (acc: 10) *\/$/;"	m	struct
 offset	hmb_types.h	/^	uint32_t offset;$/;"	m	struct:HmbSplitTable
 offset_from	hmb_types.h	/^	uint32_t           offset_from;$/;"	m	struct:HmbSegEmpty
 offset_to	hmb_types.h	/^	uint32_t           offset_to;$/;"	m	struct:HmbSegEmpty
+pageNumber	ftl.h	/^    unsigned pageNumber; \/\/ the page number stored in this QNode$/;"	m	struct:QNode
 page_size	hmb_types.h	/^	uint32_t page_size;$/;"	m	struct:HmbCtrl
 parent	hmb_types.h	/^	void    *parent;		 \/* for NvmeCtrl **\/$/;"	m	struct:HmbCtrl
 parent_ns	hmb_types.h	/^	void    *parent_ns;		 \/* for NvmeNamespace **\/$/;"	m	struct:HmbCtrl
+pba	ftl.h	/^	int32_t pba;$/;"	m	struct:virtual_block_table
+pba	hash/hashftl.h	/^	int32_t pba;$/;"	m	struct:virtual_block_table
 pg	ftl.h	/^            uint64_t pg  : PG_BITS;$/;"	m	struct:ppa::__anon5::__anon6
 pg	ftl.h	/^    int pg;$/;"	m	struct:write_pointer
 pg	ftl.h	/^    struct nand_page *pg;$/;"	m	struct:nand_block	typeref:struct:nand_block::nand_page
@@ -597,15 +737,37 @@ pl	ftl.h	/^    struct nand_plane *pl;$/;"	m	struct:nand_lun	typeref:struct:nand_
 pls_per_ch	ftl.h	/^    int pls_per_ch;   \/* # of planes per channel *\/$/;"	m	struct:ssdparams
 pls_per_lun	ftl.h	/^    int pls_per_lun;  \/* # of planes per LUN (Die) *\/$/;"	m	struct:ssdparams
 pos	ftl.h	/^    size_t                  pos;$/;"	m	struct:line
+ppa	ftl.h	/^	int32_t ppa;$/;"	m	struct:primary_table
 ppa	ftl.h	/^        uint64_t ppa;$/;"	m	union:ppa::__anon5
 ppa	ftl.h	/^struct ppa {$/;"	s
+ppa	hash/hashftl.h	/^	int32_t ppa;$/;"	m	struct:primary_table
 ppa2pgidx	ftl.c	/^static uint64_t ppa2pgidx(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
+ppa_hash	ftl.h	/^	uint64_t ppa_hash;$/;"	m	struct:ppa
+ppid	ftl.h	/^	int32_t ppid;$/;"	m	struct:primary_table
+ppid	ftl.h	/^	uint32_t ppid;$/;"	m	struct:ppa
+ppid	hash/hashftl.h	/^	int32_t ppid;$/;"	m	struct:primary_table
+prev	ftl.h	/^    struct QNode *prev, *next;$/;"	m	struct:QNode	typeref:struct:QNode::QNode
 prev	hmb_types.h	/^	struct HmbMapInfo* prev;$/;"	m	struct:HmbMapInfo	typeref:struct:HmbMapInfo::HmbMapInfo
 prev	hmb_types.h	/^	struct HmbSegEmpty *prev, *next;$/;"	m	struct:HmbSegEmpty	typeref:struct:HmbSegEmpty::HmbSegEmpty
 prev	hmb_types.h	/^	struct Hmb_FTL_MapInfo* prev;$/;"	m	struct:Hmb_FTL_MapInfo	typeref:struct:Hmb_FTL_MapInfo::Hmb_FTL_MapInfo
+pri_table	ftl.h	/^	PRIMARY_TABLE *pri_table;$/;"	m	struct:ssd
+pri_table	hash/hashftl.c	/^PRIMARY_TABLE *pri_table;$/;"	v
+primary_table	ftl.h	/^typedef struct primary_table{$/;"	s
+primary_table	hash/hashftl.h	/^typedef struct primary_table{$/;"	s
+print_algo_log	hash/hashftl.c	/^static void print_algo_log() {$/;"	f	file:
 r	hmb_types.h	/^	void *r;$/;"	m	struct:HmbMappedAddr
 r_e_next	hmb_types.h	/^	uint32_t r_e_next;$/;"	m	struct:HmbSortedEnt
 r_e_prev	hmb_types.h	/^	uint32_t r_e_prev;$/;"	m	struct:HmbSortedEnt
+re_gc_count	hash/hashftl.c	/^int32_t re_gc_count;		\/\/ number of gc due to remap$/;"	v
+re_number	hash/hashftl.c	/^int32_t re_number;$/;"	v
+re_page_count	hash/hashftl.c	/^int32_t re_page_count;		\/\/ number of moved page during remap$/;"	v
+read_end	hash/hashftl.c	/^struct timeval read_end[3000000];$/;"	v	typeref:struct:timeval
+read_latency_t	hash/hashftl.c	/^int32_t read_latency_t[10000];$/;"	v
+read_start	hash/hashftl.c	/^struct timeval read_start[3000000];$/;"	v	typeref:struct:timeval
+read_time	hash/hashftl.c	/^struct timeval read_time;$/;"	v	typeref:struct:timeval
+rear	ftl.h	/^    QNode *front, *rear;$/;"	m	struct:hmb_Queue
+reserved	hash/hashftl.c	/^Block *reserved;$/;"	v
+reserved_pba	hash/hashftl.c	/^int32_t reserved_pba;$/;"	v
 rmap	ftl.h	/^	uint64_t *rmap;     \/* reverse mapptbl, assume it's stored in OOB *\/$/;"	m	struct:ssd
 rsv	ftl.h	/^            uint64_t rsv : 1;$/;"	m	struct:ppa::__anon5::__anon6
 rsvd	hmb_types.h	/^	uint32_t    rsvd; \/* 4bytes (acc: 16) *\/$/;"	m	struct:HmbEntry
@@ -640,11 +802,13 @@ segment_id	hmb_types.h	/^	int16_t            segment_id;$/;"	m	struct:HmbSegEmpt
 segment_id	hmb_types.h	/^	int16_t  segment_id; \/* 2bytes (acc: 6) *\/$/;"	m	struct:HmbSegEnt
 segs	hmb_types.h	/^	struct HmbSeg*     segs;$/;"	m	struct:HmbCtrl	typeref:struct:HmbCtrl::HmbSeg
 select_victim_line	ftl.c	/^static struct line *select_victim_line(struct ssd *ssd, bool force)$/;"	f	file:
-set_hmb_cache	ftl.c	/^static inline void set_hmb_cache(struct ssd *ssd, int entry)$/;"	f	file:
+set_hmb_cache	ftl.c	/^static inline void set_hmb_cache(struct ssd *ssd, int entry, int i)$/;"	f	file:
 set_maptbl_ent	ftl.c	/^static inline void set_maptbl_ent(struct ssd *ssd, uint64_t lpn, struct ppa *ppa)$/;"	f	file:
 set_rmap_ent	ftl.c	/^static inline void set_rmap_ent(struct ssd *ssd, uint64_t lpn, struct ppa *ppa)$/;"	f	file:
 should_gc	ftl.c	/^static inline bool should_gc(struct ssd *ssd)$/;"	f	file:
 should_gc_high	ftl.c	/^static inline bool should_gc_high(struct ssd *ssd)$/;"	f	file:
+shr_read_cnt	ftl.h	/^	int32_t shr_read_cnt[4];$/;"	m	struct:ssd
+shr_read_cnt	hash/hashftl.c	/^int32_t shr_read_cnt[4];$/;"	v
 size	hmb_types.h	/^	uint32_t    size; \/* 4bytes (acc: 12) *\/ $/;"	m	struct:HmbEntry
 size	hmb_types.h	/^	uint32_t size;       \/* 4bytes (acc: 14) *\/$/;"	m	struct:HmbSegEnt
 size	hmb_types.h	/^	uint64_t size;           \/* HMB: Total memory buffer size *\/$/;"	m	struct:HmbCtrl
@@ -656,13 +820,16 @@ sorted_ST_size	hmb_types.h	/^	uint64_t sorted_ST_size;$/;"	m	struct:HmbSpaceMgmt
 sorted_split_mapped	hmb_types.h	/^	HmbMappedAddr **sorted_split_mapped;$/;"	m	struct:HmbSpaceMgmtCtrl
 sorted_split_num	hmb_types.h	/^	uint16_t sorted_split_num;$/;"	m	struct:HmbSpaceMgmtCtrl
 sorted_split_unit	hmb_types.h	/^	uint32_t sorted_split_unit;$/;"	m	struct:HmbSpaceMgmtCtrl
-sp	ftl.h	/^    struct ssdparams sp;$/;"	m	struct:ssd	typeref:struct:ssd::ssdparams
+sp	ftl.h	/^	struct ssdparams sp;$/;"	m	struct:ssd	typeref:struct:ssd::ssdparams
 ssd	ftl.h	/^struct ssd {$/;"	s
+ssd_advance_block_write_pointer	ftl.c	/^static void ssd_advance_block_write_pointer(struct ssd *ssd,  struct ppa *ppa)$/;"	f	file:
 ssd_advance_status	ftl.c	/^static uint64_t ssd_advance_status(struct ssd *ssd, struct ppa *ppa, struct$/;"	f	file:
 ssd_advance_write_pointer	ftl.c	/^static void ssd_advance_write_pointer(struct ssd *ssd)$/;"	f	file:
 ssd_channel	ftl.h	/^struct ssd_channel {$/;"	s
 ssd_init	ftl.c	/^void ssd_init(FemuCtrl *n)$/;"	f
+ssd_init_blk	ftl.c	/^static void ssd_init_blk(struct nand_block *blk, struct ssdparams *spp) {$/;"	f	file:
 ssd_init_ch	ftl.c	/^static void ssd_init_ch(struct ssd_channel *ch, struct ssdparams *spp)$/;"	f	file:
+ssd_init_hash_FTL	ftl.c	/^static void ssd_init_hash_FTL(struct ssd *ssd) {$/;"	f	file:
 ssd_init_hmb_cache	ftl.c	/^static void ssd_init_hmb_cache(struct ssd *ssd)$/;"	f	file:
 ssd_init_lines	ftl.c	/^static void ssd_init_lines(struct ssd *ssd)$/;"	f	file:
 ssd_init_maptbl	ftl.c	/^static void ssd_init_maptbl(struct ssd *ssd)$/;"	f	file:
@@ -675,8 +842,12 @@ ssd_init_rmap	ftl.c	/^static void ssd_init_rmap(struct ssd *ssd)$/;"	f	file:
 ssd_init_write_pointer	ftl.c	/^static void ssd_init_write_pointer(struct ssd *ssd)$/;"	f	file:
 ssd_read	ftl.c	/^static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)$/;"	f	file:
 ssd_write	ftl.c	/^static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)$/;"	f	file:
-ssdname	ftl.h	/^    char *ssdname;$/;"	m	struct:ssd
+ssdname	ftl.h	/^	char *ssdname;$/;"	m	struct:ssd
 ssdparams	ftl.h	/^struct ssdparams {$/;"	s
+state	ftl.h	/^	bool state; \/\/ CLEAN or DIRTY$/;"	m	struct:primary_table
+state	ftl.h	/^	bool state; \/\/ CLEAN or DIRTY$/;"	m	struct:virtual_block_table
+state	hash/hashftl.h	/^	bool state; \/\/ CLEAN or DIRTY$/;"	m	struct:primary_table
+state	hash/hashftl.h	/^	bool state; \/\/ CLEAN or DIRTY$/;"	m	struct:virtual_block_table
 status	ftl.h	/^    int status;$/;"	m	struct:nand_page
 stime	ftl.h	/^    int64_t stime; \/* Coperd: request arrival time *\/$/;"	m	struct:nand_cmd
 t_acc_ns	hmb_types.h	/^	uint64_t t_acc_ns;$/;"	m	struct:HmbTime
@@ -704,11 +875,15 @@ tt_pgs	ftl.h	/^    int tt_pgs;       \/* total # of pages in the SSD *\/$/;"	m	s
 tt_pls	ftl.h	/^    int tt_pls;       \/* total # of planes in the SSD *\/$/;"	m	struct:ssdparams
 tt_secs	ftl.h	/^    int tt_secs;      \/* # of sectors in the SSD *\/$/;"	m	struct:ssdparams
 type	ftl.h	/^    int type;$/;"	m	struct:nand_cmd
+type	hash/hashftl.h	/^	TYPE type;$/;"	m	struct:hash_params
 urgency	hmb_types.h	/^	HmbMappedAddr *urgency;$/;"	m	struct:HmbSpaceMgmtCtrl
 urgency	hmb_types.h	/^	uint64_t urgency:  3;$/;"	m	struct:HmbSharedEnt
 usable	hmb_types.h	/^	uint64_t usable :  1;  $/;"	m	struct:HmbSharedEnt
 valid_lpn	ftl.c	/^static inline bool valid_lpn(struct ssd *ssd, uint64_t lpn)$/;"	f	file:
 valid_ppa	ftl.c	/^static inline bool valid_ppa(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
+value	hash/hashftl.h	/^	value_set *value;$/;"	m	struct:hash_params
+vbt	ftl.h	/^	VIRTUAL_BLOCK_TABLE *vbt;$/;"	m	struct:ssd
+vbt	hash/hashftl.c	/^VIRTUAL_BLOCK_TABLE *vbt;$/;"	v
 victimAll	hmb_types.h	/^	HmbMappedAddr *victimAll;$/;"	m	struct:HmbSpaceMgmtCtrl
 victimRc	hmb_types.h	/^	HmbMappedAddr *victimRc;$/;"	m	struct:HmbSpaceMgmtCtrl
 victim_line_cmp_pri	ftl.c	/^static inline int victim_line_cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)$/;"	f	file:
@@ -718,11 +893,14 @@ victim_line_get_pri	ftl.c	/^static inline pqueue_pri_t victim_line_get_pri(void 
 victim_line_pq	ftl.h	/^    pqueue_t *victim_line_pq;$/;"	m	struct:line_mgmt
 victim_line_set_pos	ftl.c	/^static inline void victim_line_set_pos(void *a, size_t pos)$/;"	f	file:
 victim_line_set_pri	ftl.c	/^static inline void victim_line_set_pri(void *a, pqueue_pri_t pri)$/;"	f	file:
+virtual_block_table	ftl.h	/^typedef struct virtual_block_table{$/;"	s
+virtual_block_table	hash/hashftl.h	/^typedef struct virtual_block_table{$/;"	s
 vpc	ftl.h	/^    int vpc; \/* valid page count *\/$/;"	m	struct:nand_block
 vpc	ftl.h	/^    int vpc; \/* valid page count in this line *\/$/;"	m	struct:line
 w	hmb_types.h	/^	void *w;$/;"	m	struct:HmbMappedAddr
 w_e_next	hmb_types.h	/^	uint32_t w_e_next;$/;"	m	struct:HmbSortedEnt
 w_e_prev	hmb_types.h	/^	uint32_t w_e_prev;$/;"	m	struct:HmbSortedEnt
+wp	ftl.h	/^	struct write_pointer wp;$/;"	m	struct:ssd	typeref:struct:ssd::write_pointer
 wp	ftl.h	/^    int wp; \/* current write pointer *\/$/;"	m	struct:nand_block
-wp	ftl.h	/^    struct write_pointer wp;$/;"	m	struct:ssd	typeref:struct:ssd::write_pointer
+wp_hash	ftl.h	/^    struct write_pointer *wp_hash;$/;"	m	struct:ssd	typeref:struct:ssd::write_pointer
 write_pointer	ftl.h	/^struct write_pointer {$/;"	s

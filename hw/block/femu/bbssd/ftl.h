@@ -7,8 +7,8 @@
 #define INVALID_LPN     (~(0ULL))
 #define UNMAPPED_PPA    (~(0ULL))
 
-#define HASH_FTL 0            
-//#define HASH_FTL 1            
+//#define HASH_FTL 0            
+#define HASH_FTL 1            
 
 #define LEFTROTATE(x, c) (((x) << (c)) | ((x) >> (32 - (c))))
 	

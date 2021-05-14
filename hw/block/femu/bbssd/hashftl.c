@@ -1,5 +1,9 @@
 #include "ftl.h"
 #include "hashftl.h"
+#include "hmb.h"
+#include "hmb_internal.h"
+#include "hmb_types.h"
+#include "hmb_utils.h"
 
 #include <stdint.h>
 #include <math.h>
@@ -59,7 +63,7 @@ static int hash_garbage_collection(struct ssd *ssd, uint32_t max_pba, uint32_t m
 		ssd->num_GC = ssd->num_GC + 1; 
 	} else { //  (victim->ipc == 0) 
 		// nothing can be erased --> error 
-		ftl_debug("selected victim has zero invalid pages cannot be erased");
+		hmb_debug("selected victim has zero invalid pages cannot be erased");
 	}
 
 	return 0;
@@ -78,7 +82,7 @@ static struct ppa *check_written(struct ssd *ssd, int32_t pba)
 	ppa->ppa = 0;
 	ppa->g.ch = 0;
 	ppa->g.lun = 0;
-	ppa->g.pg = 0;
+
 	ppa->g.blk = pba;
 	ppa->g.pl = 0;
 
@@ -104,6 +108,7 @@ static struct ppa *check_written(struct ssd *ssd, int32_t pba)
 
 	ppa->ppa_hash = ppa_addr; 
 	ppa->ppid = temp2;
+	ppa->g.pg = temp2;
 
 	return ppa; 
 }
@@ -235,8 +240,8 @@ static int32_t get_vba_from_table(struct ssd * ssd, struct ppa * ppa, int32_t lp
 	size_t len = sizeof(lpa);
 
 	if(ppa->hid == -1 || ppa->ppid == -1 || ppa->ppa_hash == -1) {
-		ftl_debug("[HASH READ ERROR] hash mapping info returns -1 \n");
-		ftl_debug("lpa: %d   hid: %d   ppid: %d   ppa_hash: %d \n", lpa, ppa->hid, ppa->ppid, ppa->ppa_hash);
+		hmb_debug("[HASH READ ERROR] hash mapping info returns -1 \n");
+		hmb_debug("lpa: %d   hid: %d   ppid: %d   ppa_hash: %d \n", lpa, ppa->hid, ppa->ppid, ppa->ppa_hash);
 	}
 
 	hid = ppa->hid;
@@ -416,7 +421,7 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 				ftl_assert(return_ppa.g.pl == 0);
 
 
-				ftl_debug("[HASH WRITE ERROR] HASH COLLISION CANNOT BE HANDLED for lpa %d \n", lpa);
+				hmb_debug("[HASH WRITE ERROR] HASH COLLISION CANNOT BE HANDLED for lpa %d \n", lpa);
 				return return_ppa;
 			}
 
@@ -429,18 +434,10 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 
 			
 	ssd->hash_OOB[ppa->ppa_hash].lpa = lpa;
-
 	ppa->hid = hid;
 
-	return_ppa.ppa = 0;
-	return_ppa.g.ch = ppa->g.ch;
-	return_ppa.g.lun = ppa->g.lun;
-	return_ppa.g.pg = ppa->g.pg;
-	return_ppa.g.blk = ppa->g.blk;
-	return_ppa.g.pl = ppa->g.pl;
-	ftl_assert(return_ppa.g.pl == 0);
 
-	return return_ppa;
+	return *(ppa);
 }
 
 
@@ -452,7 +449,6 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
  * reads mapping data.
  * !!if not mapped, does not pull!!
  */
-
 int hash_read(struct ssd *ssd, struct ppa * ppa, uint64_t lpn) {
 	int32_t found_ppa;
 
@@ -467,7 +463,7 @@ int hash_read(struct ssd *ssd, struct ppa * ppa, uint64_t lpn) {
 	vba = get_vba_from_table(ssd, ppa, lpn);
 
 	if(vba == -1){
-		ftl_debug("[HASH READ ERROR] returned vba is -1 of lpn \n", lpn);
+		hmb_debug("[HASH READ ERROR] returned vba is -1 of lpn \n", lpn);
 	}
 
 	vba_pos = vba % 4;
@@ -490,18 +486,6 @@ int hash_read(struct ssd *ssd, struct ppa * ppa, uint64_t lpn) {
 	}
 
 	// ERROR 
-	ftl_debug("\nppa miss\n");	
-	/*
-	printf("\nlpa:%d\n", lpa);
-	printf("\nppa OOB:%d\n", hash_OOB[pri_table[lpa].ppa].lpa);
-	printf("\nppa table:%d\n", pri_table[lpa].ppa);
-	pba = vbt[vba].pba;
-	ppa = pba * _g_ppb + pri_table[lpa].ppid;
-	printf("\nvba:%d\n", vba);
-	printf("\npba:%d\n", pba);
-	printf("\npba:%d\n", ppa);
-	for(int i = 0; i < 4 ; i++){
-		printf(" |Read %d: %d\n", i+1, shr_read_cnt[i]);
-	} */
+	hmb_debug("\nppa miss\n");	
 	return -1; 
 }

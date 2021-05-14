@@ -931,7 +931,7 @@ static int do_gc(struct ssd *ssd, bool force)
     }
 
     ppa.g.blk = victim_line->id;
-    ftl_debug("GC-ing line:%d,ipc=%d,victim=%d,full=%d,free=%d\n", ppa.g.blk,
+    hmb_debug("GC-ing line:%d,ipc=%d,victim=%d,full=%d,free=%d\n", ppa.g.blk,
               victim_line->ipc, ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt,
               ssd->lm.free_line_cnt);
 
@@ -985,18 +985,30 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
     /* normal IO read path */
     for (lpn = start_lpn; lpn <= end_lpn; lpn++) {	
 		ppa = get_maptbl_ent(ssd, lpn);
-		if(HASH_FTL) {
-			// TODO hash read path
-			if(hash_read(ssd, &ppa, lpn) == -1) 
-				ftl_debug("[HASH READ ERROR] ... ");
-	
-		}
 
         if (!mapped_ppa(&ppa) || !valid_ppa(ssd, &ppa)) {
             // not mapped to valid ppa
             continue;
         }
 
+
+		if(HASH_FTL) {
+			// TODO hash read path
+			if(hash_read(ssd, &ppa, lpn) == -1) 
+				hmb_debug("[HASH READ ERROR] ... ");
+
+
+			hmb_debug("[HASH READ]  lpn %u   hid: %u   ppid: %u ", lpn,  ppa.hid, ppa.ppid );
+			hmb_debug("	hash ppa: %u   ppa: %u ", ppa.ppa_hash, ppa.ppa);		
+/*
+			uint64_t ppa_debug = ppa->ppa; 
+			uint32_t hid_debug = ppa->hid;
+			uint32_t ppid_debug = ppa->ppid;
+			uint64_t ppa_hash_debug = ppa->ppa_hash; 
+
+			hmb_debug("[HASH READ]  lpn %u   hid: %u   ppid: %u ", lpn,  hid_debug, ppid_debug );
+			hmb_debug("	hash ppa: %u   ppa: %u ", ppa_hashi_debug, ppa_debug); */
+		}
         struct nand_cmd srd;
         srd.type = USER_IO;
         srd.cmd = NAND_READ;
@@ -1072,10 +1084,8 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 
 
 	for (lpn = start_lpn; lpn <= end_lpn; lpn++) {
-
 		ppa = get_maptbl_ent(ssd, lpn);
 		if (mapped_ppa(&ppa)) {
-
 			/* update old page information first */
 			mark_page_invalid(ssd, &ppa);
 			set_rmap_ent(ssd, INVALID_LPN, &ppa);
@@ -1091,9 +1101,22 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 	
 		if(!HASH_FTL)
 			ppa = get_new_page(ssd);
-		else
+		else {
 			ppa = get_new_page_hash(ssd, lpn);
 
+/*
+			uint64_t ppa_debug = ppa->ppa; 
+			uint32_t hid_debug = ppa->hid;
+			uint32_t ppid_debug = ppa->ppid;
+			uint64_t ppa_hash_debug = ppa->ppa_hash; 
+
+			hmb_debug("[HASH READ]  lpn %u   hid: %u   ppid: %u ", lpn,  hid_debug, ppid_debug );
+			hmb_debug("	hash ppa: %u   ppa: %u ", ppa_hashi_debug, ppa_debug);
+*/
+			
+			hmb_debug("[HASH WRITE]  lpn %u   hid: %u   ppid: %u ", lpn,  ppa.hid, ppa.ppid );
+			hmb_debug("	hash ppa: %u   ppa: %u ", ppa.ppa_hash, ppa.ppa);		
+		}
 
 		/* update maptbl */
 		set_maptbl_ent(ssd, lpn, &ppa);

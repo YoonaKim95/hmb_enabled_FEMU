@@ -7,7 +7,7 @@
 #define INVALID_LPN     (~(0ULL))
 #define UNMAPPED_PPA    (~(0ULL))
 
-//#define HASH_FTL 0            
+//  #define HASH_FTL 0   
 #define HASH_FTL 1            
 
 #define LEFTROTATE(x, c) (((x) << (c)) | ((x) >> (32 - (c))))
@@ -38,9 +38,13 @@ enum {
     NAND_WRITE = 1,
     NAND_ERASE = 2,
 
-    NAND_READ_LATENCY = 40000,
+	/*NAND_READ_LATENCY = 40000,
     NAND_PROG_LATENCY = 200000,
-    NAND_ERASE_LATENCY = 2000000,
+    NAND_ERASE_LATENCY = 2000000,*/
+
+    NAND_READ_LATENCY = 0,
+    NAND_PROG_LATENCY = 0,
+    NAND_ERASE_LATENCY = 0,
 };
 
 enum {
@@ -78,13 +82,6 @@ enum {
 #define LUN_BITS    (8)
 #define CH_BITS     (7)
 
-/*struct ppa_hash {
-	int32_t hid; 
-	int32_t ppid;
-	
-	int64_t ppa;
-};
-*/
 /* describe a physical page addr */
 struct ppa {
     union {
@@ -164,7 +161,10 @@ struct ssdparams {
     int ch_xfer_lat;  /* channel transfer latency for one page in nanoseconds
                        * this defines the channel bandwith  */
 
-    double gc_thres_pcent;
+    int gc_thres_blks_high;
+    int gc_thres_blks;
+    
+	double gc_thres_pcent;
     int gc_thres_lines;
     double gc_thres_pcent_high;
     int gc_thres_lines_high;
@@ -285,6 +285,11 @@ struct ssd {
 
 	int num_GC; 
 	int num_GCcopy; 
+	int blk_erase_cnt; 
+
+	int free_blk_cnt;
+
+
 
 	// HASH_FTL
 	PRIMARY_TABLE *pri_table;
@@ -321,6 +326,7 @@ struct ssd {
 
 void ssd_init(FemuCtrl *n);
 
+uint64_t ppa2pgidx(struct ssd *ssd, struct ppa *ppa);
 struct nand_lun *get_lun(struct ssd *ssd, struct ppa *ppa);
 struct nand_block *get_blk(struct ssd *ssd, struct ppa *ppa); 
 struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa);

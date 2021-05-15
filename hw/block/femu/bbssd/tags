@@ -4,11 +4,11 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-ADDR_BITS	ftl.h	16;"	d
-ADDR_BITS	ftl.h	20;"	d
+ADDR_BITS	ftl.h	17;"	d
+ADDR_BITS	ftl.h	21;"	d
 AreAllFramesFull	hmb_lru.c	/^int AreAllFramesFull(hmb_Queue* queue)$/;"	f
-BLKS_PER_PL	ftl.h	28;"	d
-BLK_BITS	ftl.h	73;"	d
+BLKS_PER_PL	ftl.h	29;"	d
+BLK_BITS	ftl.h	74;"	d
 BM_START_SECTOR_NB	common.h	62;"	d
 CHANNEL_BLOCKING	common.h	21;"	d
 CHANNEL_IS_EMPTY	common.h	173;"	d
@@ -16,9 +16,9 @@ CHANNEL_IS_ERASE	common.h	176;"	d
 CHANNEL_IS_READ	common.h	175;"	d
 CHANNEL_IS_WRITE	common.h	174;"	d
 CHIP_BLOCKING	common.h	22;"	d
-CH_BITS	ftl.h	78;"	d
+CH_BITS	ftl.h	79;"	d
 CH_OP	common.h	169;"	d
-CLEAN	ftl.h	17;"	d
+CLEAN	ftl.h	18;"	d
 CLEAN	hash/hashftl.h	23;"	d
 CLEAN	hashftl.h	1;"	d
 COLD_RAN	common.h	164;"	d
@@ -61,7 +61,7 @@ C__victimRc_seg_id	hmb_types.h	/^	int16_t  C__victimRc_seg_id;          \/* 2byt
 DATA_BLOCK	common.h	143;"	d
 DATA_R	hash/hashftl.h	18;"	d
 DATA_W	hash/hashftl.h	19;"	d
-DIRTY	ftl.h	18;"	d
+DIRTY	ftl.h	19;"	d
 DIRTY	hash/hashftl.h	24;"	d
 DIRTY	hashftl.h	2;"	d
 EMPTY_BLOCK	common.h	134;"	d
@@ -93,8 +93,8 @@ GC_TRIGGER_OVERALL	common.h	47;"	d
 GC_VICTIM_OVERALL	common.h	39;"	d
 GC_W	hash/hashftl.h	21;"	d
 GC_WRITE	common.h	188;"	d
-HASH_FTL	ftl.h	10;"	d
-HID_BITS	ftl.h	14;"	d
+HASH_FTL	ftl.h	11;"	d
+HID_BITS	ftl.h	15;"	d
 HMB_CONFIG_NUMBER_OF_TABLE_BITMAP_PARTS	hmb_config.h	8;"	d
 HMB_CTRL	hmb.c	/^HmbCtrl HMB_CTRL;$/;"	v
 HMB_DEBUG_TIME	hmb_utils.c	/^HmbDebugTime HMB_DEBUG_TIME;$/;"	v
@@ -193,10 +193,10 @@ INVALID	common.h	153;"	d
 INVALID_LPN	ftl.h	7;"	d
 INVALID_PPA	ftl.h	6;"	d
 LATENCY_OP	common.h	171;"	d
-LEFTROTATE	ftl.h	12;"	d
+LEFTROTATE	ftl.h	13;"	d
 LEFTROTATE	md5.c	3;"	d	file:
-LUNS_PER_CH	ftl.h	31;"	d
-LUN_BITS	ftl.h	77;"	d
+LUNS_PER_CH	ftl.h	32;"	d
+LUN_BITS	ftl.h	78;"	d
 MAP_READ	common.h	201;"	d
 MAP_WRITE	common.h	202;"	d
 NAND_ERASE	ftl.h	/^    NAND_ERASE = 2,$/;"	e	enum:__anon1
@@ -205,18 +205,18 @@ NAND_PROG_LATENCY	ftl.h	/^    NAND_PROG_LATENCY = 200000,$/;"	e	enum:__anon1
 NAND_READ	ftl.h	/^    NAND_READ =  0,$/;"	e	enum:__anon1
 NAND_READ_LATENCY	ftl.h	/^    NAND_READ_LATENCY = 40000,$/;"	e	enum:__anon1
 NAND_WRITE	ftl.h	/^    NAND_WRITE = 1,$/;"	e	enum:__anon1
-NCHS	ftl.h	32;"	d
+NCHS	ftl.h	33;"	d
 NEW_RAN_WRITE	common.h	128;"	d
 NEW_SEQ_WRITE	common.h	126;"	d
 NOOP	common.h	183;"	d
 OOB_RAM	hash/hashftl.h	/^	H_OOB OOB_RAM;$/;"	m	struct:SRAM
-PGS_PER_BLK	ftl.h	27;"	d
-PG_BITS	ftl.h	74;"	d
+PGS_PER_BLK	ftl.h	28;"	d
+PG_BITS	ftl.h	75;"	d
 PG_FREE	ftl.h	/^    PG_FREE = 0,$/;"	e	enum:__anon3
 PG_INVALID	ftl.h	/^    PG_INVALID = 1,$/;"	e	enum:__anon3
 PG_VALID	ftl.h	/^    PG_VALID = 2$/;"	e	enum:__anon3
-PLS_PER_LUN	ftl.h	30;"	d
-PL_BITS	ftl.h	76;"	d
+PLS_PER_LUN	ftl.h	31;"	d
+PL_BITS	ftl.h	77;"	d
 PRIMARY_TABLE	ftl.h	/^} PRIMARY_TABLE;$/;"	t	typeref:struct:primary_table
 PRIMARY_TABLE	hash/hashftl.h	/^} PRIMARY_TABLE;$/;"	t	typeref:struct:primary_table
 PTR_RAM	hash/hashftl.h	/^	PTR PTR_RAM;$/;"	m	struct:SRAM
@@ -242,9 +242,9 @@ REG_IS_READ	common.h	180;"	d
 REG_IS_WRITE	common.h	179;"	d
 REG_OP	common.h	170;"	d
 ReferencePage	hmb_lru.c	/^int ReferencePage(struct ssd *ssd, unsigned pageNumber)$/;"	f
-SECSZ	ftl.h	24;"	d
-SECS_PER_PAGE	ftl.h	25;"	d
-SEC_BITS	ftl.h	75;"	d
+SECSZ	ftl.h	25;"	d
+SECS_PER_PAGE	ftl.h	26;"	d
+SEC_BITS	ftl.h	76;"	d
 SEC_FREE	ftl.h	/^    SEC_FREE = 0,$/;"	e	enum:__anon3
 SEC_INVALID	ftl.h	/^    SEC_INVALID = 1,$/;"	e	enum:__anon3
 SEC_VALID	ftl.h	/^    SEC_VALID = 2,$/;"	e	enum:__anon3
@@ -315,6 +315,8 @@ blk	ftl.h	/^            uint64_t blk : BLK_BITS;$/;"	m	struct:ppa::__anon5::__an
 blk	ftl.h	/^    int blk;$/;"	m	struct:write_pointer
 blk	ftl.h	/^    struct nand_block *blk;$/;"	m	struct:nand_plane	typeref:struct:nand_plane::nand_block
 blk_er_lat	ftl.h	/^    int blk_er_lat;   \/* NAND block erase latency in nanoseconds *\/$/;"	m	struct:ssdparams
+blk_erase_cnt	ftl.h	/^	int blk_erase_cnt; $/;"	m	struct:ssd
+blk_id	ftl.h	/^	uint64_t blk_id;$/;"	m	struct:nand_block
 blks_per_ch	ftl.h	/^    int blks_per_ch;  \/* # of blocks per channel *\/$/;"	m	struct:ssdparams
 blks_per_line	ftl.h	/^    int blks_per_line;$/;"	m	struct:ssdparams
 blks_per_lun	ftl.h	/^	int blks_per_lun; \/* # of blocks per LUN *\/$/;"	m	struct:ssdparams
@@ -336,9 +338,9 @@ ch_xfer_lat	ftl.h	/^    int ch_xfer_lat;  \/* channel transfer latency for one p
 check_addr	ftl.c	/^static inline void check_addr(int a, int max)$/;"	f	file:
 check_params	ftl.c	/^static void check_params(struct ssdparams *spp)$/;"	f	file:
 check_written	hash/hashftl_util.c	/^int32_t check_written( int32_t	pba, int32_t lpa, int32_t* cal_ppid)$/;"	f
-check_written	hashftl.c	/^static struct ppa *check_written(struct ssd *ssd, int32_t pba)$/;"	f	file:
+check_written	hashftl.c	/^static struct ppa check_written(struct ssd *ssd, int32_t pba)$/;"	f	file:
 check_written	hashftl_util.c	/^int32_t check_written( int32_t	pba, int32_t lpa, int32_t* cal_ppid)$/;"	f
-clean_one_block	ftl.c	/^static void clean_one_block(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
+clean_one_block	ftl.c	/^void clean_one_block(struct ssd *ssd, struct ppa *ppa)$/;"	f
 cmd	ftl.h	/^    int cmd;$/;"	m	struct:nand_cmd
 count	ftl.h	/^    unsigned count; \/\/ Number of filled frames$/;"	m	struct:hmb_Queue
 createHash	hmb_lru.c	/^hmb_Hash* createHash(int capacity)$/;"	f
@@ -369,12 +371,12 @@ free_b	hash/hashftl.c	/^b_queue *free_b;$/;"	v
 free_line_cnt	ftl.h	/^    int free_line_cnt;$/;"	m	struct:line_mgmt
 free_line_list	ftl.h	/^    QTAILQ_HEAD(free_line_list, line) free_line_list;$/;"	m	struct:line_mgmt
 front	ftl.h	/^    QNode *front, *rear;$/;"	m	struct:hmb_Queue
-ftl_assert	ftl.h	337;"	d
-ftl_assert	ftl.h	339;"	d
-ftl_debug	ftl.h	321;"	d
-ftl_debug	ftl.h	324;"	d
-ftl_err	ftl.h	328;"	d
-ftl_log	ftl.h	331;"	d
+ftl_assert	ftl.h	349;"	d
+ftl_assert	ftl.h	351;"	d
+ftl_debug	ftl.h	333;"	d
+ftl_debug	ftl.h	336;"	d
+ftl_err	ftl.h	340;"	d
+ftl_log	ftl.h	343;"	d
 ftl_thread	ftl.c	/^static void *ftl_thread(void *arg)$/;"	f	file:
 ftl_thread	ftl.h	/^    QemuThread ftl_thread;$/;"	m	struct:ssd
 full_line_cnt	ftl.h	/^    int full_line_cnt;$/;"	m	struct:line_mgmt
@@ -392,11 +394,12 @@ gc_thres_pcent	ftl.h	/^    double gc_thres_pcent;$/;"	m	struct:ssdparams
 gc_thres_pcent_high	ftl.h	/^    double gc_thres_pcent_high;$/;"	m	struct:ssdparams
 gc_val	hash/hashftl.c	/^int32_t gc_val;$/;"	v
 gc_write_page	ftl.c	/^static uint64_t gc_write_page(struct ssd *ssd, struct ppa *old_ppa)$/;"	f	file:
+gc_write_page_hash	ftl.c	/^static uint64_t gc_write_page_hash(struct ssd *ssd, struct ppa *old_ppa, struct nand_block *new_blk)$/;"	f	file:
 get_blk	ftl.c	/^struct nand_block *get_blk(struct ssd *ssd, struct ppa *ppa)$/;"	f
 get_ch	ftl.c	/^static inline struct ssd_channel *get_ch(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 get_hash	hmb_lru.c	/^static inline hmb_Hash *get_hash(struct ssd *ssd) $/;"	f	file:
 get_line	ftl.c	/^static inline struct line *get_line(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
-get_lun	ftl.c	/^static inline struct nand_lun *get_lun(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
+get_lun	ftl.c	/^struct nand_lun *get_lun(struct ssd *ssd, struct ppa *ppa)$/;"	f
 get_maptbl_ent	ftl.c	/^static inline struct ppa get_maptbl_ent(struct ssd *ssd, uint64_t lpn)$/;"	f	file:
 get_new_page	ftl.c	/^static struct ppa get_new_page(struct ssd *ssd)$/;"	f	file:
 get_new_page_hash	hashftl.c	/^struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa) $/;"	f
@@ -408,7 +411,8 @@ get_rmap_ent	ftl.c	/^static inline uint64_t get_rmap_ent(struct ssd *ssd, struct
 get_vba_from_md5	hash/hashftl_util.c	/^int32_t get_vba_from_md5(uint64_t md5_result, int32_t hid){$/;"	f
 get_vba_from_md5	hashftl.c	/^static int32_t get_vba_from_md5(uint64_t md5_result, int32_t hid){$/;"	f	file:
 get_vba_from_md5	hashftl_util.c	/^int32_t get_vba_from_md5(uint64_t md5_result, int32_t hid){$/;"	f
-get_vba_from_table	hash/hashftl_util.c	/^int32_t get_vba_from_table(int32_t lpa){$/;"	f
+get_vba_from_table	hash/hashftl_util.c	/^int32_t get_vba_from_table(struct ssd * ssd, struct ppa * ppa, int32_t lpa){$/;"	f
+get_vba_from_table	hashftl.c	/^static int32_t get_vba_from_table(struct ssd * ssd, struct ppa * ppa, int32_t lpa) {$/;"	f	file:
 get_vba_from_table	hashftl_util.c	/^int32_t get_vba_from_table(int32_t lpa){$/;"	f
 hash_OOB	ftl.h	/^	H_OOB *hash_OOB;$/;"	m	struct:ssd
 hash_OOB	ftl.h	/^typedef struct hash_OOB{$/;"	s
@@ -424,6 +428,7 @@ hash_get	hash/hashftl.c	/^uint32_t hash_get(request* const req){$/;"	f
 hash_mutex	hash/hashftl.h	/^	dl_sync hash_mutex;$/;"	m	struct:hash_params
 hash_params	hash/hashftl.h	/^typedef struct hash_params{$/;"	s
 hash_params	hash/hashftl.h	/^} hash_params;$/;"	t	typeref:struct:hash_params
+hash_read	hashftl.c	/^int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpn) {$/;"	f
 hash_remove	hash/hashftl.c	/^uint32_t hash_remove(request* const req){$/;"	f
 hash_set	hash/hashftl.c	/^uint32_t hash_set(request* const req){$/;"	f
 heads_ST_mapped	hmb_types.h	/^	HmbMappedAddr* heads_ST_mapped;$/;"	m	struct:HmbSpaceMgmtCtrl
@@ -433,8 +438,8 @@ heads_hash_bit	hmb_types.h	/^	uint8_t  heads_hash_bit; \/* for hashing: # hash b
 heads_split_mapped	hmb_types.h	/^	HmbMappedAddr** heads_split_mapped;$/;"	m	struct:HmbSpaceMgmtCtrl
 heads_split_num	hmb_types.h	/^	uint16_t        heads_split_num;$/;"	m	struct:HmbSpaceMgmtCtrl
 heads_split_unit	hmb_types.h	/^	uint32_t        heads_split_unit;$/;"	m	struct:HmbSpaceMgmtCtrl
+hid	ftl.h	/^	int32_t hid; $/;"	m	struct:ppa
 hid	ftl.h	/^	int32_t hid;$/;"	m	struct:primary_table
-hid	ftl.h	/^	uint32_t hid; $/;"	m	struct:ppa
 hid	hash/hashftl.h	/^	int32_t hid;$/;"	m	struct:primary_table
 hid_secondary	ftl.h	/^	int32_t hid_secondary; $/;"	m	struct:ssd
 hid_secondary	hash/hashftl.c	/^int32_t hid_secondary;        \/\/ hid that indicate mapping is at secondary table$/;"	v
@@ -651,8 +656,8 @@ mappings_bits	hmb_types.h	/^	uint8_t             mappings_bits;$/;"	m	struct:Hmb
 mappings_hashed_max	hmb_types.h	/^	uint64_t            mappings_hashed_max;$/;"	m	struct:HmbCtrl
 maptbl	ftl.h	/^	struct ppa *maptbl; \/* page level mapping table *\/$/;"	m	struct:ssd	typeref:struct:ssd::ppa
 maptbl_hash	ftl.h	/^	struct ppa_hash *maptbl_hash; \/* page level mapping table *\/$/;"	m	struct:ssd	typeref:struct:ssd::ppa_hash
-mark_block_free	ftl.c	/^static void mark_block_free(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
-mark_line_free	ftl.c	/^static void mark_line_free(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
+mark_block_free	ftl.c	/^void mark_block_free(struct ssd *ssd, struct ppa *ppa)$/;"	f
+mark_line_free	ftl.c	/^void mark_line_free(struct ssd *ssd, struct ppa *ppa)$/;"	f
 mark_page_invalid	ftl.c	/^static void mark_page_invalid(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 mark_page_valid	ftl.c	/^static void mark_page_valid(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 md5	md5.c	/^void md5(uint32_t *initial_msg, size_t initial_len, uint64_t* result)$/;"	f
@@ -684,6 +689,7 @@ npls	ftl.h	/^    int npls;$/;"	m	struct:nand_lun
 nr_hmb_cache	ftl.h	/^	uint32_t nr_hmb_cache;$/;"	m	struct:ssd
 nsecs	ftl.h	/^    int nsecs;$/;"	m	struct:nand_page
 num_GC	ftl.h	/^	int num_GC; $/;"	m	struct:ssd
+num_GCcopy	ftl.h	/^	int num_GCcopy; $/;"	m	struct:ssd
 num_copy	hash/hashftl.c	/^int32_t num_copy;$/;"	v
 num_hid	ftl.h	/^	int32_t num_hid; $/;"	m	struct:ssd
 num_hid	hash/hashftl.c	/^int32_t num_hid;              \/\/ number of hid bits$/;"	v
@@ -721,9 +727,9 @@ parent	hmb_types.h	/^	void    *parent;		 \/* for NvmeCtrl **\/$/;"	m	struct:HmbC
 parent_ns	hmb_types.h	/^	void    *parent_ns;		 \/* for NvmeNamespace **\/$/;"	m	struct:HmbCtrl
 pba	ftl.h	/^	int32_t pba;$/;"	m	struct:virtual_block_table
 pba	hash/hashftl.h	/^	int32_t pba;$/;"	m	struct:virtual_block_table
+pg	ftl.h	/^	struct nand_page *pg;$/;"	m	struct:nand_block	typeref:struct:nand_block::nand_page
 pg	ftl.h	/^            uint64_t pg  : PG_BITS;$/;"	m	struct:ppa::__anon5::__anon6
 pg	ftl.h	/^    int pg;$/;"	m	struct:write_pointer
-pg	ftl.h	/^    struct nand_page *pg;$/;"	m	struct:nand_block	typeref:struct:nand_block::nand_page
 pg_rd_lat	ftl.h	/^    int pg_rd_lat;    \/* NAND page read latency in nanoseconds *\/$/;"	m	struct:ssdparams
 pg_wr_lat	ftl.h	/^    int pg_wr_lat;    \/* NAND page program latency in nanoseconds *\/$/;"	m	struct:ssdparams
 pgs_per_blk	ftl.h	/^    int pgs_per_blk;  \/* # of NAND pages per block *\/$/;"	m	struct:ssdparams
@@ -743,8 +749,8 @@ ppa	ftl.h	/^struct ppa {$/;"	s
 ppa	hash/hashftl.h	/^	int32_t ppa;$/;"	m	struct:primary_table
 ppa2pgidx	ftl.c	/^static uint64_t ppa2pgidx(struct ssd *ssd, struct ppa *ppa)$/;"	f	file:
 ppa_hash	ftl.h	/^	uint64_t ppa_hash;$/;"	m	struct:ppa
+ppid	ftl.h	/^	int32_t ppid;$/;"	m	struct:ppa
 ppid	ftl.h	/^	int32_t ppid;$/;"	m	struct:primary_table
-ppid	ftl.h	/^	uint32_t ppid;$/;"	m	struct:ppa
 ppid	hash/hashftl.h	/^	int32_t ppid;$/;"	m	struct:primary_table
 prev	ftl.h	/^    struct QNode *prev, *next;$/;"	m	struct:QNode	typeref:struct:QNode::QNode
 prev	hmb_types.h	/^	struct HmbMapInfo* prev;$/;"	m	struct:HmbMapInfo	typeref:struct:HmbMapInfo::HmbMapInfo
@@ -766,6 +772,8 @@ read_latency_t	hash/hashftl.c	/^int32_t read_latency_t[10000];$/;"	v
 read_start	hash/hashftl.c	/^struct timeval read_start[3000000];$/;"	v	typeref:struct:timeval
 read_time	hash/hashftl.c	/^struct timeval read_time;$/;"	v	typeref:struct:timeval
 rear	ftl.h	/^    QNode *front, *rear;$/;"	m	struct:hmb_Queue
+reserved	ftl.h	/^	bool reserved; \/\/ reserved blk$/;"	m	struct:nand_block
+reserved	ftl.h	/^	struct nand_block reserved;$/;"	m	struct:ssd	typeref:struct:ssd::nand_block
 reserved	hash/hashftl.c	/^Block *reserved;$/;"	v
 reserved_pba	hash/hashftl.c	/^int32_t reserved_pba;$/;"	v
 rmap	ftl.h	/^	uint64_t *rmap;     \/* reverse mapptbl, assume it's stored in OOB *\/$/;"	m	struct:ssd
@@ -804,6 +812,7 @@ segs	hmb_types.h	/^	struct HmbSeg*     segs;$/;"	m	struct:HmbCtrl	typeref:struct
 select_victim_line	ftl.c	/^static struct line *select_victim_line(struct ssd *ssd, bool force)$/;"	f	file:
 set_hmb_cache	ftl.c	/^static inline void set_hmb_cache(struct ssd *ssd, int entry, int i)$/;"	f	file:
 set_maptbl_ent	ftl.c	/^static inline void set_maptbl_ent(struct ssd *ssd, uint64_t lpn, struct ppa *ppa)$/;"	f	file:
+set_reserved_blk	ftl.c	/^static inline void set_reserved_blk(struct ssd *ssd, struct nand_block *r_blk)$/;"	f	file:
 set_rmap_ent	ftl.c	/^static inline void set_rmap_ent(struct ssd *ssd, uint64_t lpn, struct ppa *ppa)$/;"	f	file:
 should_gc	ftl.c	/^static inline bool should_gc(struct ssd *ssd)$/;"	f	file:
 should_gc_high	ftl.c	/^static inline bool should_gc_high(struct ssd *ssd)$/;"	f	file:
@@ -823,17 +832,16 @@ sorted_split_unit	hmb_types.h	/^	uint32_t sorted_split_unit;$/;"	m	struct:HmbSpa
 sp	ftl.h	/^	struct ssdparams sp;$/;"	m	struct:ssd	typeref:struct:ssd::ssdparams
 ssd	ftl.h	/^struct ssd {$/;"	s
 ssd_advance_block_write_pointer	ftl.c	/^static void ssd_advance_block_write_pointer(struct ssd *ssd,  struct ppa *ppa)$/;"	f	file:
-ssd_advance_status	ftl.c	/^static uint64_t ssd_advance_status(struct ssd *ssd, struct ppa *ppa, struct$/;"	f	file:
+ssd_advance_status	ftl.c	/^uint64_t ssd_advance_status(struct ssd *ssd, struct ppa *ppa, struct$/;"	f
 ssd_advance_write_pointer	ftl.c	/^static void ssd_advance_write_pointer(struct ssd *ssd)$/;"	f	file:
 ssd_channel	ftl.h	/^struct ssd_channel {$/;"	s
 ssd_init	ftl.c	/^void ssd_init(FemuCtrl *n)$/;"	f
-ssd_init_blk	ftl.c	/^static void ssd_init_blk(struct nand_block *blk, struct ssdparams *spp) {$/;"	f	file:
 ssd_init_ch	ftl.c	/^static void ssd_init_ch(struct ssd_channel *ch, struct ssdparams *spp)$/;"	f	file:
 ssd_init_hash_FTL	ftl.c	/^static void ssd_init_hash_FTL(struct ssd *ssd) {$/;"	f	file:
 ssd_init_hmb_cache	ftl.c	/^static void ssd_init_hmb_cache(struct ssd *ssd)$/;"	f	file:
 ssd_init_lines	ftl.c	/^static void ssd_init_lines(struct ssd *ssd)$/;"	f	file:
 ssd_init_maptbl	ftl.c	/^static void ssd_init_maptbl(struct ssd *ssd)$/;"	f	file:
-ssd_init_nand_blk	ftl.c	/^static void ssd_init_nand_blk(struct nand_block *blk, struct ssdparams *spp)$/;"	f	file:
+ssd_init_nand_blk	ftl.c	/^static void ssd_init_nand_blk(struct nand_block *blk, struct ssdparams *spp, uint64_t id)$/;"	f	file:
 ssd_init_nand_lun	ftl.c	/^static void ssd_init_nand_lun(struct nand_lun *lun, struct ssdparams *spp)$/;"	f	file:
 ssd_init_nand_page	ftl.c	/^static void ssd_init_nand_page(struct nand_page *pg, struct ssdparams *spp)$/;"	f	file:
 ssd_init_nand_plane	ftl.c	/^static void ssd_init_nand_plane(struct nand_plane *pl, struct ssdparams *spp)$/;"	f	file:
@@ -876,6 +884,7 @@ tt_pls	ftl.h	/^    int tt_pls;       \/* total # of planes in the SSD *\/$/;"	m	
 tt_secs	ftl.h	/^    int tt_secs;      \/* # of sectors in the SSD *\/$/;"	m	struct:ssdparams
 type	ftl.h	/^    int type;$/;"	m	struct:nand_cmd
 type	hash/hashftl.h	/^	TYPE type;$/;"	m	struct:hash_params
+unset_reserved_blk	ftl.c	/^static inline void unset_reserved_blk(struct ssd *ssd, struct nand_block *r_blk)$/;"	f	file:
 urgency	hmb_types.h	/^	HmbMappedAddr *urgency;$/;"	m	struct:HmbSpaceMgmtCtrl
 urgency	hmb_types.h	/^	uint64_t urgency:  3;$/;"	m	struct:HmbSharedEnt
 usable	hmb_types.h	/^	uint64_t usable :  1;  $/;"	m	struct:HmbSharedEnt

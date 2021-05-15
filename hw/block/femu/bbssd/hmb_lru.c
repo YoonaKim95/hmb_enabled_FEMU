@@ -154,9 +154,10 @@ int ReferencePage(struct ssd *ssd, unsigned pageNumber)
     QNode* reqPage = hash->array[pageNumber];
   
     // the page is not in cache, bring it
-    if (reqPage == NULL)
+    if (reqPage == NULL) {
         victim = Enqueue(queue, hash, pageNumber);
-  
+		return victim; 
+	}
     // page is there and not at front, change pointer
     else if (reqPage != queue->front) {
         // Unlink rquested page from its current location
@@ -181,9 +182,12 @@ int ReferencePage(struct ssd *ssd, unsigned pageNumber)
   
         // Change front to the requested page
         queue->front = reqPage;
-    }
+		
+		return reqPage->pageNumber; 
+	} else {
+		return -1; 
+	}
 
-	return victim; 
 }
 
 

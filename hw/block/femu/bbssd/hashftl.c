@@ -27,73 +27,81 @@ static int32_t get_vba_from_md5(uint64_t md5_result, int32_t hid){
 
 
 
-static int hash_garbage_collection(struct ssd *ssd, uint32_t max_pba, uint32_t max_vba) {
-
+static int hash_garbage_collection(struct ssd *ssd, uint32_t max_pba, uint32_t max_vba) {	
     struct ssdparams *spp = &ssd->sp;
-	struct ppa *ppa = NULL;
+	struct ppa ppa;
 	struct nand_block *victim = NULL; 
-	//ssd->reserved = NULL;
 
     struct nand_lun *lunp;
-	ppa->ppa_hash = -1;
 
-	ppa->ppa = 0;
-	ppa->g.ch = 0;
-	ppa->g.lun = 0;
-	ppa->g.pg = 0;
-	ppa->g.blk = max_pba;    // GC victim blk max_pba
-	ppa->g.pl = 0;
+	ppa.ppa_hash = -1;
+
+	ppa.ppa = 0;
+	ppa.g.ch = 0;
+	ppa.g.lun = 0;
+	ppa.g.pg = 0;
+	ppa.g.blk = max_pba;    // GC victim blk max_pba
+	ppa.g.pl = 0;
 	ftl_assert(ppa.g.pl == 0);
 
 	// GC 1 get victim blk
-	victim = get_blk(ssd, ppa);
+	victim = get_blk(ssd, &ppa);
+
 	if(victim->ipc > 0) {
-		lunp = get_lun(ssd, ppa);
-		clean_one_block(ssd, ppa);
-		mark_block_free(ssd, ppa);
+		lunp = get_lun(ssd, &ppa);
+		clean_one_block(ssd, &ppa);
+		mark_block_free(ssd, &ppa);
 		if (spp->enable_gc_delay) {
 			struct nand_cmd gce;
 			gce.type = GC_IO;
 			gce.cmd = NAND_ERASE;
 			gce.stime = 0;
-			ssd_advance_status(ssd, ppa, &gce, 0);
+			ssd_advance_status(ssd, &ppa, &gce, 0);
 		}
+
+
+		// vbt update
+		ssd->vbt[max_vba].pba  = victim->blk_id; 
+
 		lunp->gc_endtime = lunp->next_lun_avail_time;
-		mark_line_free(ssd, ppa);
+		mark_line_free(ssd, &ppa);
 		ssd->num_GC = ssd->num_GC + 1; 
+
 	} else { //  (victim->ipc == 0) 
 		// nothing can be erased --> error 
 		hmb_debug("selected victim has zero invalid pages cannot be erased");
 	}
 
-	return 0;
+	hmb_debug("hash GC # %u    num_valid_copy: %u", ssd->num_GC + 1, ssd->num_GCcopy );
+
+	return victim->blk_id;
 }
 
 
-static struct ppa *check_written(struct ssd *ssd, int32_t pba)
+static struct ppa check_written(struct ssd *ssd, int32_t pba)
 {	
 	int64_t temp2 = -1, ppa_addr = -1;
 
 	struct nand_block *blk;
 
-	struct ppa *ppa = NULL;
+	struct ppa ppa;
 
-	ppa->ppa_hash = -1;
-	ppa->ppa = 0;
-	ppa->g.ch = 0;
-	ppa->g.lun = 0;
+	ppa.ppa_hash = -1;
+	ppa.ppa = 0;
+	ppa.g.ch = 0;
+	ppa.g.lun = 0;
 
-	ppa->g.blk = pba;
-	ppa->g.pl = 0;
+	ppa.g.blk = pba;
+	ppa.g.pl = 0;
 
 	ftl_assert(ppa.g.pl == 0);
 
-	blk = get_blk(ssd, ppa);
+	blk = get_blk(ssd, &ppa);
 
 	temp2 = blk->wp;
 
 	// corresponding block is full;
-	if(temp2 == PGS_PER_BLK){
+	if(temp2 == PGS_PER_BLK) {
 		return ppa;
 	}
 
@@ -104,11 +112,12 @@ static struct ppa *check_written(struct ssd *ssd, int32_t pba)
 
 	ppa_addr = (pba * PGS_PER_BLK) + temp2;
 		
-	ppa->g.pg = temp2;
+	ppa.g.pg = temp2;
 
-	ppa->ppa_hash = ppa_addr; 
-	ppa->ppid = temp2;
-	ppa->g.pg = temp2;
+	ppa.ppa_hash = ppa_addr;
+
+	ppa.ppid = temp2;
+	ppa.g.pg = temp2;
 
 	return ppa; 
 }
@@ -242,6 +251,8 @@ static int32_t get_vba_from_table(struct ssd * ssd, struct ppa * ppa, int32_t lp
 	if(ppa->hid == -1 || ppa->ppid == -1 || ppa->ppa_hash == -1) {
 		hmb_debug("[HASH READ ERROR] hash mapping info returns -1 \n");
 		hmb_debug("lpa: %d   hid: %d   ppid: %d   ppa_hash: %d \n", lpa, ppa->hid, ppa->ppid, ppa->ppa_hash);
+	
+	
 	}
 
 	hid = ppa->hid;
@@ -257,14 +268,11 @@ static int32_t get_vba_from_table(struct ssd * ssd, struct ppa * ppa, int32_t lp
 
 struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa) 
 {
+	// hmb_debug("get_new_page_hash ");
 	struct nand_block *block;
-
-	struct ppa return_ppa; 
-
-	//H_OOB *hash_OOB = &(ssd->hash_OOB); 
 	
-	struct ppa *ppa = NULL; 
-	struct ppa *shr_ppa = NULL;
+	struct ppa ppa; 
+	struct ppa shr_ppa;
 
 	int32_t vba;
 	int32_t max_pba = -1, max_vba = -1, max_inv = -1, max_hid = -1, pba = -1, cur_inv = -1; 
@@ -302,15 +310,13 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 		shr_inv_hid[i] = -1;
 	}
 
-
-	shr_ppa->ppa = 0;
-	shr_ppa->g.ch = 0;
-	shr_ppa->g.lun = 0;
-	shr_ppa->g.pg = 0;
-	shr_ppa->g.blk = 0;
-	shr_ppa->g.pl = 0;
+	shr_ppa.ppa = 0;
+	shr_ppa.g.ch = 0;
+	shr_ppa.g.lun = 0;
+	shr_ppa.g.pg = 0;
+	shr_ppa.g.blk = 0;
+	shr_ppa.g.pl = 0;
 	ftl_assert(shr_ppa.g.pl == 0);
-
 
 	while(hid != ssd->hid_secondary) {
 		vba = get_vba_from_md5(md5_res, hid);
@@ -321,16 +327,19 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 		/* convert virtual block to physical block  */
 		pba = ssd->vbt[vba].pba;
 
+		// hmb_debug("vba: %u   pba: %u", vba, pba);
+
 		ppa = check_written(ssd, pba);
 
-		if(ppa->ppa_hash != -1) {
-			ppa->hid = hid; 
-			ssd->hash_OOB[ppa->ppa_hash].lpa = lpa;
+		if(ppa.ppa_hash != -1) {
+			ppa.hid = hid; 
+			ssd->hash_OOB[ppa.ppa_hash].lpa = lpa;
+
+			 // hmb_debug("found with hid %u at ppa %u", hid, ppa.ppa_hash);
 			break;
 		}
 
-
-		block = get_blk(ssd, ppa); 
+		block = get_blk(ssd, &ppa); 
 
 		//cur_inv = ssd->barray[pba].ipc;
 		cur_inv = block->ipc;
@@ -348,8 +357,8 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 			vba_temp = vba_srt + vba_pos;
 			shr_pba = ssd->vbt[vba_temp].pba;
 
-			shr_ppa->g.blk = shr_pba; 
-			block = get_blk(ssd, shr_ppa);
+			shr_ppa.g.blk = shr_pba; 
+			block = get_blk(ssd, &shr_ppa);
 
 			if(shr_num_free[i] == 0 && PGS_PER_BLK - (block->wp) > 0){
 				shr_free_pba[i] = shr_pba;
@@ -404,25 +413,17 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 					vba = get_vba_from_md5(md5_res, hid);
 					/* convert virtual block to physical block  */
 					pba = ssd->vbt[vba].pba;
-					shr_ppa->g.blk = pba; 
-					block = get_blk(ssd, shr_ppa);
+					shr_ppa.g.blk = pba; 
+					block = get_blk(ssd, &shr_ppa);
 
 					printf("\nHID: %d,\tPBA: %d,\tINVALID: %d\n", hid, pba, block->ipc);
 					hid = hid + 1;
 				}
-				ppa->ppa_hash = -1;
-
-				return_ppa.ppa = 0;
-				return_ppa.g.ch = ppa->g.ch;
-				return_ppa.g.lun = ppa->g.lun;
-				return_ppa.g.pg = ppa->g.pg;
-				return_ppa.g.blk = ppa->g.blk;
-				return_ppa.g.pl = ppa->g.pl;
-				ftl_assert(return_ppa.g.pl == 0);
+				ppa.ppa_hash = -1;
 
 
 				hmb_debug("[HASH WRITE ERROR] HASH COLLISION CANNOT BE HANDLED for lpa %d \n", lpa);
-				return return_ppa;
+				return ppa;
 			}
 
 		} else {  //GC occurs 
@@ -433,15 +434,12 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 	}
 
 			
-	ssd->hash_OOB[ppa->ppa_hash].lpa = lpa;
-	ppa->hid = hid;
+	ssd->hash_OOB[ppa.ppa_hash].lpa = lpa;
+	ppa.hid = hid;
 
 
-	return *(ppa);
+	return ppa;
 }
-
-
-
 
 /* Function: hash_get
  * Process: 
@@ -449,14 +447,12 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
  * reads mapping data.
  * !!if not mapped, does not pull!!
  */
-int hash_read(struct ssd *ssd, struct ppa * ppa, uint64_t lpn) {
+int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpn) {
 	int32_t found_ppa;
 
 	// shared virtual block variables
 	int32_t vba, vba_pos, vba_srt, vba_temp, pba;
 	int i;
-
-	//H_OOB *hash_OOB = &(ssd->hash_OOB); 
 
 
 	// shared virtual block read process
@@ -475,9 +471,8 @@ int hash_read(struct ssd *ssd, struct ppa * ppa, uint64_t lpn) {
 		found_ppa = pba * BLKS_PER_PL + ppa->ppid;
 
 		if(ssd->hash_OOB[found_ppa].lpa == lpn){
-			if(found_ppa != ppa->ppa){
-				printf("\nppa mismatch\n");
-			
+			if(found_ppa != ppa2pgidx(ssd, ppa)){
+				printf("\nppa struct mismatch\n");	
 			}
 			// shr_read_cnt[i]++;
 			return 0;
@@ -487,5 +482,7 @@ int hash_read(struct ssd *ssd, struct ppa * ppa, uint64_t lpn) {
 
 	// ERROR 
 	hmb_debug("\nppa miss\n");	
+	hmb_debug("\nlpa: %u   hid: %u ppid: %u pgidx: %u\n", lpn, ppa->hid, ppa->ppid, ppa2pgidx(ssd, ppa));	
+
 	return -1; 
 }

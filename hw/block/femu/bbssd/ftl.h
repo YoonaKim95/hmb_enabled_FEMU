@@ -7,7 +7,7 @@
 #define INVALID_LPN     (~(0ULL))
 #define UNMAPPED_PPA    (~(0ULL))
 
-//  #define HASH_FTL 0   
+//#define HASH_FTL 0
 #define HASH_FTL 1            
 
 #define LEFTROTATE(x, c) (((x) << (c)) | ((x) >> (32 - (c))))
@@ -22,11 +22,12 @@
 #endif 
 
 
-#define SECSZ 512
+#define SECSZ  512
 #define SECS_PER_PAGE 8  /* 4KB */
 
-#define PGS_PER_BLK 512
-#define BLKS_PER_PL 32768   // 512  * 8 * 8 
+#define PGS_PER_BLK 256
+//#define PGS_PER_BLK 512
+#define BLKS_PER_PL 65536 // 32768 * 2  // 512  * 8 * 8  * 2
 //spp->blks_per_pl = 256; /* 16GB */
 #define PLS_PER_LUN 1
 #define LUNS_PER_CH 1
@@ -37,14 +38,15 @@ enum {
     NAND_READ =  0,
     NAND_WRITE = 1,
     NAND_ERASE = 2,
+	
+	NAND_READ_LATENCY = 4000,
+    NAND_PROG_LATENCY = 20000,
+    NAND_ERASE_LATENCY = 200000,
 
-	/*NAND_READ_LATENCY = 40000,
-    NAND_PROG_LATENCY = 200000,
-    NAND_ERASE_LATENCY = 2000000,*/
-
+	/*
     NAND_READ_LATENCY = 0,
     NAND_PROG_LATENCY = 0,
-    NAND_ERASE_LATENCY = 0,
+    NAND_ERASE_LATENCY = 0,  */
 };
 
 enum {
@@ -99,7 +101,7 @@ struct ppa {
 
 	uint64_t ppa_hash;
 
-	int32_t hid; 
+	uint32_t hid; 
 	int32_t ppid;
 };
  
@@ -255,19 +257,11 @@ typedef struct hmb_Hash {
 
 // #if defined(HASH_FTL)
 typedef struct hash_OOB{
-	int32_t lpa; 
+	int64_t lpa; 
 } H_OOB;
 
-typedef struct primary_table{
-	int32_t hid;
-	int32_t ppid;
-	
-	int32_t ppa;
-	bool state; // CLEAN or DIRTY
-} PRIMARY_TABLE;
-
 typedef struct virtual_block_table{
-	int32_t pba;
+	int64_t pba;
 	bool state; // CLEAN or DIRTY
 } VIRTUAL_BLOCK_TABLE;
 // #endif
@@ -292,17 +286,16 @@ struct ssd {
 
 
 	// HASH_FTL
-	PRIMARY_TABLE *pri_table;
 	VIRTUAL_BLOCK_TABLE *vbt;
-	int32_t num_hid; 
-	int32_t num_ppid;
-	int32_t hid_secondary; 
+	int64_t num_hid; 
+	int64_t num_ppid;
+	int64_t hid_secondary; 
 
 	struct nand_block reserved;
 
-	int32_t lpa_sft;
-	int32_t num_vbt;
-	int32_t shr_read_cnt[4];
+	int64_t lpa_sft;
+	int64_t num_vbt;
+	int64_t shr_read_cnt[4];
 	struct nand_block *barray;
 	H_OOB *hash_OOB;
 
@@ -329,10 +322,10 @@ void ssd_init(FemuCtrl *n);
 uint64_t ppa2pgidx(struct ssd *ssd, struct ppa *ppa);
 struct nand_lun *get_lun(struct ssd *ssd, struct ppa *ppa);
 struct nand_block *get_blk(struct ssd *ssd, struct ppa *ppa); 
-struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa);
-int hash_read(struct ssd *ssd, struct ppa * ppa, uint64_t lpn);
+struct ppa get_new_page_hash(struct ssd *ssd, uint64_t lpa);
+int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpa);
 
-// uint64_t md5_u(uint32_t *initial_msg, size_t initial_len); 
+uint64_t md5_u(uint32_t *initial_msg, size_t initial_len); 
 
 void clean_one_block(struct ssd *ssd, struct ppa *ppa);
 

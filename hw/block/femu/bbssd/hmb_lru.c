@@ -96,7 +96,6 @@ void deQueue(hmb_Queue* queue)
 // and hash
 int Enqueue(hmb_Queue* queue, hmb_Hash* hash, unsigned pageNumber)
 {
-
 	int victim = -1; 
     // If all frames are full, remove the page at the rear
     if (AreAllFramesFull(queue)) {
@@ -183,11 +182,8 @@ int ReferencePage(struct ssd *ssd, unsigned pageNumber)
         // Change front to the requested page
         queue->front = reqPage;
 		
-		return reqPage->pageNumber; 
-	} else {
-		return -1; 
+		return -3; 
+	} else { // already at the front
+		return -2; 
 	}
-
 }
-
-

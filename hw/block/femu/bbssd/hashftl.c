@@ -12,7 +12,7 @@
 /* Func: get_vba_from_md5
  * extract pba from md5 
  */
-static int32_t get_vba_from_md5(uint64_t md5_result, int32_t hid){
+static int32_t get_vba_from_md5(uint64_t md5_result, uint32_t hid) {
 	int32_t temp;
 	uint64_t shifted;
 
@@ -27,7 +27,7 @@ static int32_t get_vba_from_md5(uint64_t md5_result, int32_t hid){
 
 
 
-static int hash_garbage_collection(struct ssd *ssd, uint32_t max_pba, uint32_t max_vba) {	
+static int hash_garbage_collection(struct ssd *ssd, uint64_t max_pba, uint64_t max_vba) {	
     struct ssdparams *spp = &ssd->sp;
 	struct ppa ppa;
 	struct nand_block *victim = NULL; 
@@ -81,9 +81,7 @@ static int hash_garbage_collection(struct ssd *ssd, uint32_t max_pba, uint32_t m
 static struct ppa check_written(struct ssd *ssd, int32_t pba)
 {	
 	int64_t temp2 = -1, ppa_addr = -1;
-
 	struct nand_block *blk;
-
 	struct ppa ppa;
 
 	ppa.ppa_hash = -1;
@@ -111,25 +109,24 @@ static struct ppa check_written(struct ssd *ssd, int32_t pba)
 	}
 
 	ppa_addr = (pba * PGS_PER_BLK) + temp2;
-		
 	ppa.g.pg = temp2;
-
 	ppa.ppa_hash = ppa_addr;
-
 	ppa.ppid = temp2;
 	ppa.g.pg = temp2;
 
 	return ppa; 
 }
 
-static uint64_t md5_u(uint32_t *initial_msg, size_t initial_len)
+uint64_t  md5_u(uint32_t *initial_msg, size_t initial_len)
 {
 	uint32_t *msg = NULL;
 	uint32_t h0, h1, h2, h3;
-	int new_len, offset;
+	int new_len, offset, i;
 	uint32_t temp;
 	
 	uint64_t tmp, result;
+
+	// hmb_debug("init mesg: %u ", *initial_msg);
 
 	// per-round shift amounts
 	uint32_t r[] = { 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
@@ -171,7 +168,13 @@ static uint64_t md5_u(uint32_t *initial_msg, size_t initial_len)
 	}; // also appends "0" bits
 								   // (we alloc also 64 extra bytes...)
 	
-	memcpy(msg, initial_msg, initial_len);
+	// memcpy(msg, initial_msg, initial_len);
+	//
+	//msg[0] = *initial_msg;
+
+	for(i = 0; i < initial_len; i++)
+		msg[i] = *initial_msg;
+
 	msg[initial_len] = 128; // write the "1" bit
 
 	// note, we append the len
@@ -181,7 +184,7 @@ static uint64_t md5_u(uint32_t *initial_msg, size_t initial_len)
 
 	for (offset = 0; offset < new_len; offset += (512 / 8)) {
 
-		// break chunk into sixteen 32-bit words w[j], 0 �� j �� 15
+		// break chunk into sixteen 32-bit words w[j], 0 占쏙옙 j 占쏙옙 15
 		uint32_t *w = (uint32_t *)(msg + offset);
 		
 		// Initialize hash value
@@ -242,31 +245,8 @@ static uint64_t md5_u(uint32_t *initial_msg, size_t initial_len)
 	return result;
 }
 
-static int32_t get_vba_from_table(struct ssd * ssd, struct ppa * ppa, int32_t lpa) {
-	int32_t vba, hid;
-	uint32_t lpa_md5;
-	uint64_t md5_res;
-	size_t len = sizeof(lpa);
 
-	if(ppa->hid == -1 || ppa->ppid == -1 || ppa->ppa_hash == -1) {
-		hmb_debug("[HASH READ ERROR] hash mapping info returns -1 \n");
-		hmb_debug("lpa: %d   hid: %d   ppid: %d   ppa_hash: %d \n", lpa, ppa->hid, ppa->ppid, ppa->ppa_hash);
-	
-	
-	}
-
-	hid = ppa->hid;
-
-	lpa_md5 = lpa >> ssd->lpa_sft;
-	md5_res = md5_u(&lpa_md5, len);
-
-	vba = get_vba_from_md5(md5_res, hid);
-
-	return vba;
-}
-
-
-struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa) 
+struct ppa get_new_page_hash(struct ssd *ssd, uint64_t lpa) 
 {
 	// hmb_debug("get_new_page_hash ");
 	struct nand_block *block;
@@ -274,11 +254,11 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 	struct ppa ppa; 
 	struct ppa shr_ppa;
 
-	int32_t vba;
+	int32_t vba = -1;
 	int32_t max_pba = -1, max_vba = -1, max_inv = -1, max_hid = -1, pba = -1, cur_inv = -1; 
 
-	uint32_t lpa_md5,  hid = 0;  //, cal_ppid = 0;
-	uint64_t md5_res;
+	uint32_t lpa_md5 = 0,  hid = 0;  //, cal_ppid = 0;
+	uint64_t md5_res = 0;
 	
 	int i;
 	size_t len = sizeof(lpa);
@@ -297,6 +277,8 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 	// get value from md5
 	lpa_md5 = lpa >> ssd->lpa_sft;
 	md5_res = md5_u(&lpa_md5, len);
+
+	//hmb_debug("MD5 - W lpa: %u  size: % u md5_res: %u ", lpa_md5, len, md5_res);
 
 	// initialize variables for GC and shared virtual block
 	max_pba = -1;
@@ -320,6 +302,7 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 
 	while(hid != ssd->hid_secondary) {
 		vba = get_vba_from_md5(md5_res, hid);
+		//hmb_debug("init msg %u vba: %u ", md5_res, vba);
 
 		vba_pos = vba % 4;
 		vba_srt = vba - vba_pos;
@@ -327,7 +310,7 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 		/* convert virtual block to physical block  */
 		pba = ssd->vbt[vba].pba;
 
-		// hmb_debug("vba: %u   pba: %u", vba, pba);
+		//hmb_debug("hid: %u vba: %u   pba: %u",hid, vba, pba);
 
 		ppa = check_written(ssd, pba);
 
@@ -399,6 +382,7 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 			}
 
 			if(shr_chk == 1){
+				pba = shr_pba;
 				ppa = check_written(ssd, shr_pba);
 				hid = shr_hid;
 			} if(shr_chk == 2){
@@ -432,11 +416,12 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
 			hid = max_hid;
 		}
 	}
-
 			
 	ssd->hash_OOB[ppa.ppa_hash].lpa = lpa;
 	ppa.hid = hid;
 
+	//hmb_debug("HASH WRITE DEBUG lpa: %u ", lpa);
+	//hmb_debug("lpn: %u hash vba: %u  pba: %u hid: %u  ppa2pgidx: %u ", lpa, vba, pba, hid, ppa2pgidx(ssd, &ppa));
 
 	return ppa;
 }
@@ -447,19 +432,35 @@ struct ppa get_new_page_hash(struct ssd *ssd, int32_t lpa)
  * reads mapping data.
  * !!if not mapped, does not pull!!
  */
-int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpn) {
+int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpa) {
 	int32_t found_ppa;
 
 	// shared virtual block variables
-	int32_t vba, vba_pos, vba_srt, vba_temp, pba;
+	int32_t vba = 0, vba_pos = 0 , vba_srt = 0, vba_temp = 0, pba = 0;
 	int i;
+////
+	uint32_t lpa_md5 = 0;
+	uint64_t md5_res = 0;
+	
+	size_t len = sizeof(lpa);
+
+	// get value from md5
+	lpa_md5 = (lpa >> ssd->lpa_sft);
+	md5_res = md5_u(&lpa_md5, len);
 
 
-	// shared virtual block read process
-	vba = get_vba_from_table(ssd, ppa, lpn);
+////
 
+	vba = get_vba_from_md5(md5_res, ppa->hid);
+
+	pba = (ssd->vbt[vba]).pba;
+
+	//hmb_debug("MD5 - R lpa: %u  size: % u md5_res: %u ", lpa_md5, len, md5_res);
+	//hmb_debug("lpa: %u mes: %u init vba: %u pba: %u hid:%u ",lpa, md5_res, vba, pba, ppa->hid);
+	
+	
 	if(vba == -1){
-		hmb_debug("[HASH READ ERROR] returned vba is -1 of lpn \n", lpn);
+		hmb_debug("[HASH READ VBT ERROR] returned vba is -1 of lpa \n", lpa);
 	}
 
 	vba_pos = vba % 4;
@@ -468,21 +469,33 @@ int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpn) {
 	for(i = 0; i < 4; i++){
 		vba_temp = vba_srt + vba_pos;
 		pba = (ssd->vbt[vba_temp]).pba;
-		found_ppa = pba * BLKS_PER_PL + ppa->ppid;
 
-		if(ssd->hash_OOB[found_ppa].lpa == lpn){
+		//hmb_debug("pba: %u vba: %u ppa blk: %u ", pba, vba, ppa->g.blk);
+		
+		found_ppa = (pba * (PGS_PER_BLK)) + ppa->ppid;
+		
+		
+		//hmb_debug("i: %u found ppa: %u   ppa hash ppa: %u ppa2pgidx: %u", i, found_ppa, ppa->ppa_hash, ppa2pgidx(ssd,ppa));
+		if(ssd->hash_OOB[found_ppa].lpa == lpa){
 			if(found_ppa != ppa2pgidx(ssd, ppa)){
-				printf("\nppa struct mismatch\n");	
+				// printf("ppa struct mismatch");	
+
+			} else {
+				//hmb_debug("lpa : %u  read at ppa %u \n", lpa, found_ppa);
+				return 0;
 			}
-			// shr_read_cnt[i]++;
-			return 0;
-		}	
+		}
+
 		vba_pos = (vba_pos + 1) % 4;
 	}
 
+	printf("read err\n");
 	// ERROR 
-	hmb_debug("\nppa miss\n");	
-	hmb_debug("\nlpa: %u   hid: %u ppid: %u pgidx: %u\n", lpn, ppa->hid, ppa->ppid, ppa2pgidx(ssd, ppa));	
-
+	//hmb_debug("ppa miss");	
+	//hmb_debug(" requested lpa:   %u ",lpa);
+	//hmb_debug(" found ppa: %u    ppa2pgidx  %u \n\n",found_ppa, ppa2pgidx(ssd, ppa)); 
+	//hmb_debug(" hash oob lpa found : %u ppa2idx : % u ", ssd->hash_OOB[found_ppa].lpa, ssd->hash_OOB[ppa2pgidx(ssd,ppa)].lpa); 
+			
+	
 	return -1; 
 }

@@ -41,9 +41,9 @@ enum {
 	
 	NAND_READ_LATENCY = 4000,
     NAND_PROG_LATENCY = 20000,
-    NAND_ERASE_LATENCY = 200000,
+    NAND_ERASE_LATENCY = 200000, 
 
-	/*
+/*
     NAND_READ_LATENCY = 0,
     NAND_PROG_LATENCY = 0,
     NAND_ERASE_LATENCY = 0,  */
@@ -319,6 +319,7 @@ struct ssd {
 
 void ssd_init(FemuCtrl *n);
 
+int do_gc(struct ssd *ssd, bool force);
 uint64_t ppa2pgidx(struct ssd *ssd, struct ppa *ppa);
 struct nand_lun *get_lun(struct ssd *ssd, struct ppa *ppa);
 struct nand_block *get_blk(struct ssd *ssd, struct ppa *ppa); 

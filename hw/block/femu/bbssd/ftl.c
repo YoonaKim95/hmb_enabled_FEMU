@@ -17,8 +17,9 @@ static inline bool should_gc(struct ssd *ssd)
 
 static inline bool should_gc_high(struct ssd *ssd)
 {
-    return (ssd->free_blk_cnt <= 1);
-    //return (ssd->free_blk_cnt <= ssd->sp.gc_thres_blks_high    // return (ssd->lm.free_line_cnt <= ssd->sp.gc_thres_lines_high);
+    //return (ssd->free_blk_cnt <= 1);
+    return (ssd->free_blk_cnt <= ssd->sp.gc_thres_blks_high);  
+	//// return (ssd->lm.free_line_cnt <= ssd->sp.gc_thres_lines_high);
 }
 
 // 0 == dirty | evicted | not_cached 
@@ -91,6 +92,32 @@ static inline void set_rmap_ent(struct ssd *ssd, uint64_t lpn, struct ppa *ppa)
 
     ssd->rmap[pgidx] = lpn;
 }
+////////////// current version line == blk
+static inline int victim_blk_cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)
+{
+    return (next > curr);
+}
+
+static inline pqueue_pri_t victim_blk_get_pri(void *a)
+{
+    return ((struct line *)a)->vpc;
+}
+
+static inline void victim_blk_set_pri(void *a, pqueue_pri_t pri)
+{
+    ((struct line *)a)->vpc = pri;
+}
+
+static inline size_t victim_blk_get_pos(void *a)
+{
+    return ((struct line *)a)->pos;
+}
+
+static inline void victim_blk_set_pos(void *a, size_t pos)
+{
+    ((struct line *)a)->pos = pos;
+}
+/////////////////////////////
 
 static inline int victim_line_cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)
 {
@@ -337,14 +364,14 @@ static void ssd_init_params(struct ssdparams *spp, struct ssd *ssd)
     spp->secs_per_line = spp->pgs_per_line * spp->secs_per_pg;
     spp->tt_lines = spp->blks_per_lun; /* TODO: to fix under multiplanes */
 
-    //spp->gc_thres_pcent = 0.75;
+    spp->gc_thres_pcent = 0.75;
     //spp->gc_thres_pcent = 0.85;
-    spp->gc_thres_pcent = 0.90;
+    //spp->gc_thres_pcent = 0.90;
     spp->gc_thres_lines = (int)((1 - spp->gc_thres_pcent) * spp->tt_lines);
 
     spp->gc_thres_blks = (int)((1 - spp->gc_thres_pcent) * BLKS_PER_PL);
 	
-	spp->gc_thres_pcent_high = 0.99;
+	spp->gc_thres_pcent_high = 0.95;
     spp->gc_thres_lines_high = (int)((1 - spp->gc_thres_pcent_high) * spp->tt_lines);
     spp->gc_thres_blks_high = (int)((1 - spp->gc_thres_pcent_high) * BLKS_PER_PL);
    
@@ -372,6 +399,7 @@ static void ssd_init_nand_blk(struct nand_block *blk, struct ssdparams *spp, uin
         ssd_init_nand_page(&blk->pg[i], spp);
     }
 
+	
 	blk->blk_id = id;
     blk->ipc = 0;
     blk->vpc = 0;
@@ -519,6 +547,8 @@ void ssd_init(FemuCtrl *n)
 	ssd->lpa_sft = 6; 
 	ssd->num_GC = 0; 
 	ssd->num_GCcopy = 0;
+
+	ssd->full_invalid_cnt = 0;
 	ssd->blk_erase_cnt = 0;
 	ssd->free_blk_cnt = BLKS_PER_PL;
 
@@ -550,6 +580,11 @@ void ssd_init(FemuCtrl *n)
 //#if defined(HASH_FTL)
 	ssd_init_hash_FTL(ssd);
 //#endif 
+
+	ssd->victim_blk_pq = pqueue_init(BLKS_PER_PL, victim_blk_cmp_pri,
+            victim_blk_get_pri, victim_blk_set_pri,
+            victim_blk_get_pos, victim_blk_set_pos);
+
 
 
 	// hmb_debug("possible caching entries: %u ", (spp->tt_pgs * ssd->addr_bits) / (HMB_CTRL.page_size * 8));	
@@ -682,8 +717,7 @@ static void mark_page_invalid(struct ssd *ssd, struct ppa *ppa)
     struct line *line;
 
 	ssd->hash_OOB[ppa2pgidx(ssd, ppa)].lpa = -1;
-    
-	
+  	
 	/* update corresponding page status */
     pg = get_pg(ssd, ppa);
     ftl_assert(pg->status == PG_VALID);
@@ -713,12 +747,16 @@ static void mark_page_invalid(struct ssd *ssd, struct ppa *ppa)
         pqueue_insert(lm->victim_line_pq, line);
         lm->victim_line_cnt++;
     }
-/*
-	if(line->ipc >= (PGS_PER_BLK * 0.3)) {
-		pqueue_insert(lm->victim_line_pq, line);
-		lm->victim_line_cnt++;
+
+	if(line->ipc == PGS_PER_BLK  && line->vpc == 0) {
+		pqueue_insert(ssd->victim_blk_pq, line);
+        pqueue_remove(lm->victim_line_pq, line); 
+
+		//QTAILQ_REMOVE(&lm->full_line_list, line, entry);
+		lm->victim_line_cnt--;
+		ssd->full_invalid_cnt++;
 	}
-*/
+
 }
 
 static void mark_page_valid(struct ssd *ssd, struct ppa *ppa)
@@ -891,25 +929,33 @@ static struct line *select_victim_line(struct ssd *ssd, bool force)
     struct line_mgmt *lm = &ssd->lm;
     struct line *victim_line = NULL;
 
-    victim_line = pqueue_peek(lm->victim_line_pq);
-    if (!victim_line) {
-        return NULL;
-    }
+	if(ssd->full_invalid_cnt > 0) {
+		victim_line = pqueue_peek(ssd->victim_blk_pq);
+		
+		if(!victim_line) {
+			printf("full vic blk mngmt err");
+			return NULL;
+		}
+		
+		pqueue_pop(ssd->victim_blk_pq);
+		ssd->full_invalid_cnt--;
 
-	//if(!force && victim_line->ipc < PGS_PER_BLK * 0.9) {
-	if(!force && victim_line->ipc < PGS_PER_BLK) {
-		return NULL;
+		return victim_line;
+
+	} else if(force && (ssd->full_invalid_cnt == 0)) {
+		pqueue_pop(lm->victim_line_pq);
+		lm->victim_line_cnt--;
+		victim_line = pqueue_peek(lm->victim_line_pq);
+
+		if (!victim_line) {
+			return NULL;
+		}
+
+	} else {
+		return NULL; 
 	}
 
-    if (!force && victim_line->ipc < ssd->sp.pgs_per_line ) {
-        return NULL;
-    }
-
-    pqueue_pop(lm->victim_line_pq);
-    lm->victim_line_cnt--;
-
-    /* victim_line is a danggling node now */
-    return victim_line;
+	return victim_line;
 }
 
 /* here ppa identifies the block we want to clean */
@@ -977,19 +1023,16 @@ int do_gc(struct ssd *ssd, bool force)
 		return -1;
 	}
 
-	while(victim_line) { 
-		i++; 
-
+	while(should_gc(ssd) && victim_line) { 
+		i++;
 		struct ppa ppa;
 		int ch, lun;
 
 		ppa.g.blk = victim_line->id;
-		hmb_debug("GC-ing F %d line:%d,ipc=%d,victim=%d,full=%d,free=%d", force, ppa.g.blk,
-				victim_line->ipc, ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt,
+		hmb_debug("GC-ing F %d line:%d,ipc=%d,victim=%d,full_inv=%d full=%d,free=%d", force, ppa.g.blk,
+				victim_line->ipc, ssd->lm.victim_line_cnt, ssd->full_invalid_cnt, ssd->lm.full_line_cnt,
 				ssd->lm.free_line_cnt);
 		
-
-
 		hmb_debug(" GC # %u    num_valid_copy: %u\n", ssd->num_GC, ssd->num_GCcopy );
 		/* copy back valid data */
 		for (ch = 0; ch < spp->nchs; ch++) {
@@ -1019,7 +1062,7 @@ int do_gc(struct ssd *ssd, bool force)
 		ssd->num_GC++; 
 
 
-		if(force && i >= 1) {
+		if(force && i >= 8) {
 			force = false; 
 		}
 
@@ -1027,8 +1070,6 @@ int do_gc(struct ssd *ssd, bool force)
 		if (!victim_line) {
 				return -1;
 		}
-
-
 	}
 		
 	hmb_debug(" GC # %u    num_valid_copy: %u\n", ssd->num_GC, ssd->num_GCcopy );

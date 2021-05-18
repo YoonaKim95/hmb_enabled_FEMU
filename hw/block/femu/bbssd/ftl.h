@@ -7,8 +7,8 @@
 #define INVALID_LPN     (~(0ULL))
 #define UNMAPPED_PPA    (~(0ULL))
 
-//#define HASH_FTL 0
-#define HASH_FTL 1            
+#define HASH_FTL 0
+//#define HASH_FTL 1            
 
 #define LEFTROTATE(x, c) (((x) << (c)) | ((x) >> (32 - (c))))
 	
@@ -38,15 +38,15 @@ enum {
     NAND_READ =  0,
     NAND_WRITE = 1,
     NAND_ERASE = 2,
-	
+/*	
 	NAND_READ_LATENCY = 4000,
     NAND_PROG_LATENCY = 20000,
-    NAND_ERASE_LATENCY = 200000, 
+    NAND_ERASE_LATENCY = 200000,  */
 
-/*
+
     NAND_READ_LATENCY = 0,
     NAND_PROG_LATENCY = 0,
-    NAND_ERASE_LATENCY = 0,  */
+    NAND_ERASE_LATENCY = 0,  
 };
 
 enum {
@@ -281,9 +281,10 @@ struct ssd {
 	int num_GCcopy; 
 	int blk_erase_cnt; 
 
+    pqueue_t *victim_blk_pq;
+
+	int full_invalid_cnt; 
 	int free_blk_cnt;
-
-
 
 	// HASH_FTL
 	VIRTUAL_BLOCK_TABLE *vbt;

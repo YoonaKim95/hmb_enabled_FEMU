@@ -38,15 +38,15 @@ enum {
     NAND_READ =  0,
     NAND_WRITE = 1,
     NAND_ERASE = 2,
-	
+/*	
 	NAND_READ_LATENCY = 4000,
     NAND_PROG_LATENCY = 20000,
     NAND_ERASE_LATENCY = 200000,  
-/*
+*/
 
     NAND_READ_LATENCY = 0,
     NAND_PROG_LATENCY = 0,
-    NAND_ERASE_LATENCY = 0,  */ 
+    NAND_ERASE_LATENCY = 0,  
 };
 
 enum {
@@ -207,7 +207,8 @@ typedef struct line {
     int vpc; /* valid page count in this line */
     QTAILQ_ENTRY(line) entry; /* in either {free,victim,full} list */
     /* position in the priority queue for victim lines */
-    size_t                  pos;
+    size_t                  pos; 
+
 } line;
 
 /* wp: record next write addr */
@@ -224,12 +225,14 @@ struct line_mgmt {
     struct line *lines;
     /* free line list, we only need to maintain a list of blk numbers */
     QTAILQ_HEAD(free_line_list, line) free_line_list;
-    pqueue_t *victim_line_pq;
+    pqueue_t *victim_line_pq;   //vpc
+    pqueue_t *victim_line2_pq;  //ipc
     //QTAILQ_HEAD(victim_line_list, line) victim_line_list;
     QTAILQ_HEAD(full_line_list, line) full_line_list;
     int tt_lines;
     int free_line_cnt;
     int victim_line_cnt;
+    int victim_line2_cnt;
     int full_line_cnt;
 };
 
@@ -276,6 +279,10 @@ struct ssd {
 	int *hmb_cache_bm;  /* hmb cache 4kb unit */	
 	uint32_t nr_hmb_cache;
 	uint32_t addr_bits;
+
+	int tot_write;
+	int tot_read;
+
 
 	int num_GC; 
 	int num_GCcopy; 

@@ -74,7 +74,7 @@ static int hash_garbage_collection(struct ssd *ssd, uint64_t max_pba, uint64_t m
 		hmb_debug("selected victim has zero invalid pages cannot be erased");
 	}
 
-	hmb_debug("hash GC # %u    num_valid_copy: %u", ssd->num_GC + 1, ssd->num_GCcopy );
+	//hmb_debug("hash GC # %u    num_valid_copy: %u", ssd->num_GC + 1, ssd->num_GCcopy );
 
 	return victim->blk_id;
 }
@@ -436,15 +436,11 @@ struct ppa get_new_page_hash(struct ssd *ssd, uint64_t lpa)
  * !!if not mapped, does not pull!!
  */
 int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpa) {
-
-		
-	//hmb_debug("[HASH READ ]  \n", lpa);
 	int32_t found_ppa;
 
 	// shared virtual block variables
 	int32_t vba = 0, vba_pos = 0 , vba_srt = 0, vba_temp = 0, pba = 0;
 	int i;
-////
 	uint32_t lpa_md5 = 0;
 	uint64_t md5_res = 0;
 	
@@ -454,19 +450,12 @@ int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpa) {
 	lpa_md5 = (lpa >> ssd->lpa_sft);
 	md5_res = md5_u(&lpa_md5, len);
 
-
-////
-
 	vba = get_vba_from_md5(md5_res, ppa->hid);
 
 	pba = (ssd->vbt[vba]).pba;
-
-	//hmb_debug("MD5 - R lpa: %u  size: % u md5_res: %u ", lpa_md5, len, md5_res);
-	//hmb_debug("lpa: %u mes: %u init vba: %u pba: %u hid:%u ",lpa, md5_res, vba, pba, ppa->hid);
-	
 	
 	if(vba == -1){
-		//hmb_debug("[HASH READ VBT ERROR] returned vba is -1 of lpa \n", lpa);
+		hmb_debug("[HASH READ VBT ERROR] returned vba is -1 of lpa \n", lpa);
 	}
 
 	vba_pos = vba % 4;
@@ -475,17 +464,11 @@ int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpa) {
 	for(i = 0; i < 4; i++){
 		vba_temp = vba_srt + vba_pos;
 		pba = (ssd->vbt[vba_temp]).pba;
-
-		//hmb_debug("pba: %u vba: %u ppa blk: %u ", pba, vba, ppa->g.blk);
 		
 		found_ppa = (pba * (PGS_PER_BLK)) + ppa->ppid;
-		
-		
-		//hmb_debug("i: %u found ppa: %u   ppa hash ppa: %u ppa2pgidx: %u", i, found_ppa, ppa->ppa_hash, ppa2pgidx(ssd,ppa));
 		if(ssd->hash_OOB[found_ppa].lpa == lpa){
 			if(found_ppa != ppa2pgidx(ssd, ppa)){
-				// printf("ppa struct mismatch");	
-
+				 printf("ppa struct mismatch");	
 			} else {
 				//hmb_debug("lpa : %u  read at ppa %u \n", lpa, found_ppa);
 				return 0;
@@ -496,12 +479,5 @@ int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpa) {
 	}
 
 	printf("read err\n");
-	// ERROR 
-	//hmb_debug("ppa miss");	
-	//hmb_debug(" requested lpa:   %u ",lpa);
-	//hmb_debug(" found ppa: %u    ppa2pgidx  %u \n\n",found_ppa, ppa2pgidx(ssd, ppa)); 
-	//hmb_debug(" hash oob lpa found : %u ppa2idx : % u ", ssd->hash_OOB[found_ppa].lpa, ssd->hash_OOB[ppa2pgidx(ssd,ppa)].lpa); 
-			
-	
 	return -1; 
 }

@@ -2,8 +2,8 @@
 #ifndef __SSD__HMB_H__
 #define __SSD__HMB_H__
 
-//#define HMB_ENTRIES 0
-#define HMB_ENTRIES 8192
+#define HMB_ENTRIES 0
+//#define HMB_ENTRIES 8192
 
 	//id->hmpre = cpu_to_le32(2048);  /* HMB: Preferred size is 8MB */
 	//id->hmpre = cpu_to_le32(8192);  /* HMB: Preferred size is 32MB */

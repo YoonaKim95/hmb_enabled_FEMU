@@ -38,15 +38,15 @@ enum {
     NAND_READ =  0,
     NAND_WRITE = 1,
     NAND_ERASE = 2,
-/*	
+	
 	NAND_READ_LATENCY = 4000,
     NAND_PROG_LATENCY = 20000,
-    NAND_ERASE_LATENCY = 200000,  */
-
+    NAND_ERASE_LATENCY = 200000,  
+/*
 
     NAND_READ_LATENCY = 0,
     NAND_PROG_LATENCY = 0,
-    NAND_ERASE_LATENCY = 0,  
+    NAND_ERASE_LATENCY = 0,  */ 
 };
 
 enum {

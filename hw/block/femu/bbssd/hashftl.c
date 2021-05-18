@@ -28,7 +28,9 @@ static int32_t get_vba_from_md5(uint64_t md5_result, uint32_t hid) {
 
 
 static int hash_garbage_collection(struct ssd *ssd, uint64_t max_pba, uint64_t max_vba) {	
-    struct ssdparams *spp = &ssd->sp;
+   
+	//hmb_debug("hash GC in # %u    num_valid_copy: %u", ssd->num_GC + 1, ssd->num_GCcopy );
+	struct ssdparams *spp = &ssd->sp;
 	struct ppa ppa;
 	struct nand_block *victim = NULL; 
 
@@ -248,7 +250,7 @@ uint64_t  md5_u(uint32_t *initial_msg, size_t initial_len)
 
 struct ppa get_new_page_hash(struct ssd *ssd, uint64_t lpa) 
 {
-	// hmb_debug("get_new_page_hash ");
+	//hmb_debug("get_new_page_hash ");
 	struct nand_block *block;
 	
 	struct ppa ppa; 
@@ -304,6 +306,7 @@ struct ppa get_new_page_hash(struct ssd *ssd, uint64_t lpa)
 		vba = get_vba_from_md5(md5_res, hid);
 		//hmb_debug("init msg %u vba: %u ", md5_res, vba);
 
+	
 		vba_pos = vba % 4;
 		vba_srt = vba - vba_pos;
 
@@ -318,7 +321,7 @@ struct ppa get_new_page_hash(struct ssd *ssd, uint64_t lpa)
 			ppa.hid = hid; 
 			ssd->hash_OOB[ppa.ppa_hash].lpa = lpa;
 
-			 // hmb_debug("found with hid %u at ppa %u", hid, ppa.ppa_hash);
+			//hmb_debug("found with hid %u at ppa %u", hid, ppa.ppa_hash);
 			break;
 		}
 
@@ -406,7 +409,7 @@ struct ppa get_new_page_hash(struct ssd *ssd, uint64_t lpa)
 				ppa.ppa_hash = -1;
 
 
-				hmb_debug("[HASH WRITE ERROR] HASH COLLISION CANNOT BE HANDLED for lpa %d \n", lpa);
+				//hmb_debug("[HASH WRITE ERROR] HASH COLLISION CANNOT BE HANDLED for lpa %d \n", lpa);
 				return ppa;
 			}
 
@@ -421,7 +424,7 @@ struct ppa get_new_page_hash(struct ssd *ssd, uint64_t lpa)
 	ppa.hid = hid;
 
 	//hmb_debug("HASH WRITE DEBUG lpa: %u ", lpa);
-	//hmb_debug("lpn: %u hash vba: %u  pba: %u hid: %u  ppa2pgidx: %u ", lpa, vba, pba, hid, ppa2pgidx(ssd, &ppa));
+	//hmb_debug("lpn: %u hash vba: %u  pba: %u hid: %u  ppa2pgidx: %u \n", lpa, vba, pba, hid, ppa2pgidx(ssd, &ppa));
 
 	return ppa;
 }
@@ -433,6 +436,9 @@ struct ppa get_new_page_hash(struct ssd *ssd, uint64_t lpa)
  * !!if not mapped, does not pull!!
  */
 int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpa) {
+
+		
+	//hmb_debug("[HASH READ ]  \n", lpa);
 	int32_t found_ppa;
 
 	// shared virtual block variables
@@ -460,7 +466,7 @@ int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpa) {
 	
 	
 	if(vba == -1){
-		hmb_debug("[HASH READ VBT ERROR] returned vba is -1 of lpa \n", lpa);
+		//hmb_debug("[HASH READ VBT ERROR] returned vba is -1 of lpa \n", lpa);
 	}
 
 	vba_pos = vba % 4;

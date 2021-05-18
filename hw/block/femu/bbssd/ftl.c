@@ -11,14 +11,15 @@ static void *ftl_thread(void *arg);
 
 static inline bool should_gc(struct ssd *ssd)
 {
-    return (ssd->free_blk_cnt <= ssd->sp.gc_thres_blks);
+    //return (ssd->free_blk_cnt <= ssd->sp.gc_thres_blks);
+    return (ssd->free_blk_cnt <= 200);
     // return (ssd->lm.free_line_cnt <= ssd->sp.gc_thres_lines);
 }
 
 static inline bool should_gc_high(struct ssd *ssd)
 {
-    //return (ssd->free_blk_cnt <= 1);
-    return (ssd->free_blk_cnt <= ssd->sp.gc_thres_blks_high);  
+    return (ssd->free_blk_cnt <= 1);
+    //return (ssd->free_blk_cnt <= ssd->sp.gc_thres_blks_high);  
 	//// return (ssd->lm.free_line_cnt <= ssd->sp.gc_thres_lines_high);
 }
 
@@ -206,7 +207,7 @@ static struct line *get_next_free_line(struct ssd *ssd)
     struct line *curline = NULL;
 
     curline = QTAILQ_FIRST(&lm->free_line_list);
-    if (!curline) {
+    if (!curline && !HASH_FTL) {
         do_gc(ssd, true);
 		curline = QTAILQ_FIRST(&lm->free_line_list);
 		if(!curline) {
@@ -364,14 +365,14 @@ static void ssd_init_params(struct ssdparams *spp, struct ssd *ssd)
     spp->secs_per_line = spp->pgs_per_line * spp->secs_per_pg;
     spp->tt_lines = spp->blks_per_lun; /* TODO: to fix under multiplanes */
 
-    spp->gc_thres_pcent = 0.75;
+    //spp->gc_thres_pcent = 0.75;
     //spp->gc_thres_pcent = 0.85;
-    //spp->gc_thres_pcent = 0.90;
+    spp->gc_thres_pcent = 0.99;
     spp->gc_thres_lines = (int)((1 - spp->gc_thres_pcent) * spp->tt_lines);
 
     spp->gc_thres_blks = (int)((1 - spp->gc_thres_pcent) * BLKS_PER_PL);
 	
-	spp->gc_thres_pcent_high = 0.95;
+	spp->gc_thres_pcent_high = 0.999;
     spp->gc_thres_lines_high = (int)((1 - spp->gc_thres_pcent_high) * spp->tt_lines);
     spp->gc_thres_blks_high = (int)((1 - spp->gc_thres_pcent_high) * BLKS_PER_PL);
    
@@ -581,10 +582,11 @@ void ssd_init(FemuCtrl *n)
 	ssd_init_hash_FTL(ssd);
 //#endif 
 
-	ssd->victim_blk_pq = pqueue_init(BLKS_PER_PL, victim_blk_cmp_pri,
-            victim_blk_get_pri, victim_blk_set_pri,
-            victim_blk_get_pos, victim_blk_set_pos);
-
+	if(!HASH_FTL) {
+		ssd->victim_blk_pq = pqueue_init(BLKS_PER_PL, victim_blk_cmp_pri,
+				victim_blk_get_pri, victim_blk_set_pri,
+				victim_blk_get_pos, victim_blk_set_pos);
+	}
 
 
 	// hmb_debug("possible caching entries: %u ", (spp->tt_pgs * ssd->addr_bits) / (HMB_CTRL.page_size * 8));	
@@ -730,33 +732,32 @@ static void mark_page_invalid(struct ssd *ssd, struct ppa *ppa)
     ftl_assert(blk->vpc > 0 && blk->vpc <= spp->pgs_per_blk);
     blk->vpc--;
 
-    /* update corresponding line status */
-    line = get_line(ssd, ppa);
-    ftl_assert(line->ipc >= 0 && line->ipc < spp->pgs_per_line);
-    if (line->vpc == spp->pgs_per_line) {
-        ftl_assert(line->ipc == 0);
-        was_full_line = true;
-    }
-    line->ipc++;
-    ftl_assert(line->vpc > 0 && line->vpc <= spp->pgs_per_line);
-    line->vpc--;
-    if (was_full_line) {
-        /* move line: "full" -> "victim" */
-        QTAILQ_REMOVE(&lm->full_line_list, line, entry);
-        lm->full_line_cnt--;
-        pqueue_insert(lm->victim_line_pq, line);
-        lm->victim_line_cnt++;
-    }
+	if(!HASH_FTL) {
+		/* update corresponding line status */
+		line = get_line(ssd, ppa);
+		ftl_assert(line->ipc >= 0 && line->ipc < spp->pgs_per_line);
+		if (line->vpc == spp->pgs_per_line) {
+			ftl_assert(line->ipc == 0);
+			was_full_line = true;
+		}
+		line->ipc++;
+		ftl_assert(line->vpc > 0 && line->vpc <= spp->pgs_per_line);
+		line->vpc--;
+		if (was_full_line) {
+			/* move line: "full" -> "victim" */
+			QTAILQ_REMOVE(&lm->full_line_list, line, entry);
+			lm->full_line_cnt--;
+			pqueue_insert(lm->victim_line_pq, line);
+			lm->victim_line_cnt++;
+		}
 
-	if(line->ipc == PGS_PER_BLK  && line->vpc == 0) {
-		pqueue_insert(ssd->victim_blk_pq, line);
-        pqueue_remove(lm->victim_line_pq, line); 
-
-		//QTAILQ_REMOVE(&lm->full_line_list, line, entry);
-		lm->victim_line_cnt--;
-		ssd->full_invalid_cnt++;
+		if(line->ipc == PGS_PER_BLK  && line->vpc == 0) {
+			pqueue_insert(ssd->victim_blk_pq, line);
+			pqueue_remove(lm->victim_line_pq, line); 
+			lm->victim_line_cnt--;
+			ssd->full_invalid_cnt++;
+		}
 	}
-
 }
 
 static void mark_page_valid(struct ssd *ssd, struct ppa *ppa)
@@ -837,7 +838,6 @@ static void gc_read_page(struct ssd *ssd, struct ppa *ppa)
 static uint64_t gc_write_page_hash(struct ssd *ssd, struct ppa *old_ppa, struct nand_block *new_blk)
 {
     struct ppa new_ppa;	
-
 	struct nand_lun *new_lun;
 
     uint64_t lpn = get_rmap_ent(ssd, old_ppa);
@@ -852,7 +852,6 @@ static uint64_t gc_write_page_hash(struct ssd *ssd, struct ppa *old_ppa, struct 
 
 	new_ppa.hid = old_ppa->hid; 
 	new_ppa.ppid = new_blk->wp; 
-
 
 	new_ppa.ppa_hash = ppa2pgidx(ssd, &new_ppa);
 
@@ -1023,7 +1022,7 @@ int do_gc(struct ssd *ssd, bool force)
 		return -1;
 	}
 
-	while(should_gc(ssd) && victim_line) { 
+	while(should_gc(ssd) && victim_line && i < 8) { 
 		i++;
 		struct ppa ppa;
 		int ch, lun;
@@ -1062,7 +1061,8 @@ int do_gc(struct ssd *ssd, bool force)
 		ssd->num_GC++; 
 
 
-		if(force && i >= 8) {
+		//if(force && i >= 8) {
+		if(force && !should_gc_high(ssd)) {
 			force = false; 
 		}
 
@@ -1109,9 +1109,8 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
 
 
 		if(HASH_FTL) {
-
 			if(hash_read(ssd, &ppa, lpn) == -1) { 
-				//hmb_debug("[HASH READ ERROR] ... ");
+				hmb_debug("[HASH READ ERROR] ... ");
 				//hmb_debug("[HASH READ]  lpn %u   hid: %u   ppid: %u ", lpn,  ppa.hid, ppa.ppid );
 				//hmb_debug("	hash ppa: %u   ppa: %u \n\n", ppa.ppa_hash, ppa2pgidx(ssd, &ppa));		
 			}
@@ -1122,34 +1121,25 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
         srd.cmd = NAND_READ;
         srd.stime = req->stime;
 		
-		
 		hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;	
-		// hmb_debug("HMB cache entry: %u ", hmb_cache_entry);
-
 
 		// chk if lpn is cached to HMB
 		if (hmb_cached(ssd, hmb_cache_entry) == 0) { // not mapped to HMB 
 
 			// not cahced  (rd_lat *2)
 			sublat = ssd_advance_status(ssd, &ppa, &srd, 0);
-
-
+			
 			if(HMB_ENTRIES != 0) {	
 				hmb_return = ReferencePage(ssd, hmb_cache_entry);
 				// cache the corresponding LPN list to HMB
 				if(ssd->nr_hmb_cache > 0) {
 					ssd->nr_hmb_cache--; 
-					//if (ReferencePage(ssd, hmb_cache_entry) != -1)
 					if (hmb_return > -1)
 						hmb_debug("HMB cache meta management is not synced");
-				} else {
-					// lru evict entry and add
-					// evict and ad
-					if(hmb_return == -1) {
-						//hmb_debug("new HMB cache failed");
-						//hmb_debug("ssd nr hmb cache %u ", ssd->nr_hmb_cache);
-						//hmb_debug("cache entry %u ", hmb_cache_entry  );
-					} else 
+				} else {   // lru evict entry and add
+					if(hmb_return == -1)
+						hmb_debug("new HMB caching failed");
+					else 
 						set_hmb_cache(ssd, hmb_return, 0);
 				}
 
@@ -1175,7 +1165,6 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 	uint64_t end_lpn = (lba + len - 1) / spp->secs_per_pg;
 	struct ppa ppa;
 	uint64_t lpn;
-	//uint64_t curlat = 0, tot_lat = 0;
 	uint64_t curlat = 0, maxlat = 0;
 
 	if (end_lpn >= spp->tt_pgs) {
@@ -1194,7 +1183,6 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 				break;
 		}
 	}
-
 
 	for (lpn = start_lpn; lpn <= end_lpn; lpn++) {
 		ppa = get_maptbl_ent(ssd, lpn);
@@ -1243,7 +1231,8 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 
 		maxlat = (curlat > maxlat) ? curlat : maxlat;
 	}
-    return maxlat;
+   
+	return maxlat;
 }
 
 static void *ftl_thread(void *arg)

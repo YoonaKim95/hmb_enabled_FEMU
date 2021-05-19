@@ -7,11 +7,12 @@
 #define INVALID_LPN     (~(0ULL))
 #define UNMAPPED_PPA    (~(0ULL))
 
-#define HASH_FTL 0
-//#define HASH_FTL 1            
+//#define HASH_FTL 0
+#define HASH_FTL 1            
 
 #define LEFTROTATE(x, c) (((x) << (c)) | ((x) >> (32 - (c))))
-	
+
+#define HASH_SFT 0
 #define HID_BITS 6
 #if(HASH_FTL)
 	#define ADDR_BITS 14
@@ -38,15 +39,15 @@ enum {
     NAND_READ =  0,
     NAND_WRITE = 1,
     NAND_ERASE = 2,
-/*	
+	
 	NAND_READ_LATENCY = 4000,
     NAND_PROG_LATENCY = 20000,
     NAND_ERASE_LATENCY = 200000,  
-*/
+/*
 
     NAND_READ_LATENCY = 0,
     NAND_PROG_LATENCY = 0,
-    NAND_ERASE_LATENCY = 0,  
+    NAND_ERASE_LATENCY = 0,  */
 };
 
 enum {
@@ -260,7 +261,7 @@ typedef struct hmb_Hash {
 
 // #if defined(HASH_FTL)
 typedef struct hash_OOB{
-	int64_t lpa; 
+	uint64_t lpa; 
 } H_OOB;
 
 typedef struct virtual_block_table{
@@ -281,6 +282,7 @@ struct ssd {
 	uint32_t addr_bits;
 
 	int tot_write;
+	int tot_update;
 	int tot_read;
 
 
@@ -310,6 +312,7 @@ struct ssd {
 	// HMB LRU list 
 	hmb_Queue* hmb_lru_list;
 	hmb_Hash* hmb_lru_hash;
+	int hmb_read_hit; 
 
 	uint64_t *rmap;     /* reverse mapptbl, assume it's stored in OOB */
 
@@ -336,7 +339,7 @@ int hash_read(struct ssd *ssd, struct ppa *ppa, uint64_t lpa);
 
 uint64_t md5_u(uint32_t *initial_msg, size_t initial_len); 
 
-void clean_one_block(struct ssd *ssd, struct ppa *ppa);
+void clean_one_block(struct ssd *ssd, struct ppa *ppa, uint64_t vba);
 
 void mark_line_free(struct ssd *ssd, struct ppa *ppa);
 void mark_block_free(struct ssd *ssd, struct ppa *ppa);

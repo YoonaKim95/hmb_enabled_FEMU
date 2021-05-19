@@ -103,7 +103,9 @@ int Enqueue(hmb_Queue* queue, hmb_Hash* hash, unsigned pageNumber)
 		victim = queue->rear->pageNumber;
         hash->array[queue->rear->pageNumber] = NULL;
         deQueue(queue);
-    }
+    } else {
+		victim = pageNumber;
+	}
   
     // Create a new node with given page number,
     // And add the new node to the front of queue
@@ -148,16 +150,15 @@ int ReferencePage(struct ssd *ssd, unsigned pageNumber)
 	hmb_Hash *hash = NULL;
 	hash = get_hash(ssd);
 		
-	// printf("in ref\n");
-	int victim = -1; 
+	int victim = -1;
+
     QNode* reqPage = hash->array[pageNumber];
   
     // the page is not in cache, bring it
     if (reqPage == NULL) {
         victim = Enqueue(queue, hash, pageNumber);
 		return victim; 
-	}
-    // page is there and not at front, change pointer
+	} // page is there and not at front, change pointer
     else if (reqPage != queue->front) {
         // Unlink rquested page from its current location
         // in queue.
@@ -175,15 +176,13 @@ int ReferencePage(struct ssd *ssd, unsigned pageNumber)
         // Put the requested page before current front
         reqPage->next = queue->front;
         reqPage->prev = NULL;
-  
         // Change prev of current front
         reqPage->next->prev = reqPage;
-  
         // Change front to the requested page
         queue->front = reqPage;
 		
-		return -3; 
+		return pageNumber;
 	} else { // already at the front
-		return -2; 
+		return pageNumber; 
 	}
 }

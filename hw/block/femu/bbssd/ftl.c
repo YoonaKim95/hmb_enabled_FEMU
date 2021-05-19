@@ -41,12 +41,6 @@ static inline struct ppa get_maptbl_ent(struct ssd *ssd, uint64_t lpn)
     return ssd->maptbl[lpn];
 }
 
-static inline void unset_reserved_blk(struct ssd *ssd, struct nand_block *r_blk)
-{
-	r_blk->reserved = false;
-}
-
-
 static inline void set_reserved_blk(struct ssd *ssd, struct nand_block *r_blk)
 {
 	r_blk->reserved = true;
@@ -57,10 +51,6 @@ static inline void set_maptbl_ent(struct ssd *ssd, uint64_t lpn, struct ppa *ppa
 {
     ftl_assert(lpn < ssd->sp.tt_pgs);
     ssd->maptbl[lpn] = *ppa;
-
-	if(HASH_FTL) {
-		ssd->hash_OOB[ppa2pgidx(ssd, ppa)].lpa = lpn;
-	}
 }
 
 uint64_t ppa2pgidx(struct ssd *ssd, struct ppa *ppa)
@@ -460,12 +450,10 @@ static void ssd_init_hmb_cache(struct ssd *ssd)
 	int available_entries = (spp->tt_pgs) / (spp->hmb_lpas_per_blk); 
 	hmb_debug("available entries %u ", available_entries);
 
-    ssd->hmb_cache_bm = g_malloc0(sizeof(int) * (spp->tt_pgs / spp->hmb_lpas_per_blk) );
+    ssd->hmb_cache_bm = g_malloc0(sizeof(int) * (available_entries));
     
 	for (int i = 0; i < available_entries ; i++) {
-        ssd->hmb_cache_bm[i] = 0;    
-
-		// printf("hmb cache bm [%d]: %d\n", i, ssd->hmb_cache_bm[i]);
+        ssd->hmb_cache_bm[i] = 0;
 	}
 
 	// ssd->nr_hmb_cache = HMB_CTRL.FTL_free_mappings; 
@@ -541,19 +529,21 @@ void ssd_init(FemuCtrl *n)
 	// ex. 32bits for mapping || 16 bits ( 6 + 8) for hash	
 	ssd->addr_bits = ADDR_BITS;
 
+	ssd->hmb_read_hit = 0; 
 
-	//ssd->lpa_sft = 8; 
-	ssd->lpa_sft = 6; 
+	ssd->lpa_sft = HASH_SFT; 
 	ssd->num_GC = 0; 
 	ssd->num_GCcopy = 0;
 
 
+	ssd->tot_update = 0;
 	ssd->tot_write = 0;
 	ssd->tot_read = 0;
 
 	ssd->full_invalid_cnt = 0;
 	ssd->blk_erase_cnt = 0;
 	ssd->free_blk_cnt = BLKS_PER_PL;
+
 
     ssd_init_params(spp, ssd);
 
@@ -720,7 +710,8 @@ static void mark_page_invalid(struct ssd *ssd, struct ppa *ppa)
     bool was_full_line = false;
     struct line *line;
 
-	ssd->hash_OOB[ppa2pgidx(ssd, ppa)].lpa = -1;
+	if(HASH_FTL)
+		ssd->hash_OOB[ppa2pgidx(ssd, ppa)].lpa = -1;
   	
 	/* update corresponding page status */
     pg = get_pg(ssd, ppa);
@@ -758,6 +749,7 @@ static void mark_page_invalid(struct ssd *ssd, struct ppa *ppa)
 		}
 
 		
+		// full invalid 
 		if(line->ipc == PGS_PER_BLK  && line->vpc == 0) {
 			pqueue_insert(ssd->victim_blk_pq, line);
 			
@@ -792,7 +784,8 @@ static void mark_page_valid(struct ssd *ssd, struct ppa *ppa)
 
 void mark_block_free(struct ssd *ssd, struct ppa *ppa)
 {
-    struct ssdparams *spp = &ssd->sp;
+    
+	struct ssdparams *spp = &ssd->sp;
     struct nand_block *blk = get_blk(ssd, ppa);
     struct nand_page *pg = NULL;
 
@@ -811,7 +804,6 @@ void mark_block_free(struct ssd *ssd, struct ppa *ppa)
 	blk->wp = 0; 
 
     blk->erase_cnt++;
-
 	ssd->blk_erase_cnt++; 
 }
 
@@ -832,7 +824,6 @@ static void gc_read_page(struct ssd *ssd, struct ppa *ppa)
 		// chk mapping cached to HMB
 		hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;
 
-		// hmb_debug("HMB cache entry: %u ", hmb_cache_entry);
 		// chk if lpn is cached to HMB
 		if (hmb_cached(ssd, hmb_cache_entry) == 0) { // not mapped to HMB 
 			ssd_advance_status(ssd, ppa, &gcr, 0);  // not cahced  (rd_lat *2)
@@ -843,7 +834,7 @@ static void gc_read_page(struct ssd *ssd, struct ppa *ppa)
 }
 
 /* move valid page data (already in DRAM) from victim line to a new page */
-static uint64_t gc_write_page_hash(struct ssd *ssd, struct ppa *old_ppa, struct nand_block *new_blk)
+static uint64_t gc_write_page_hash(struct ssd *ssd, struct ppa *old_ppa)
 {
     struct ppa new_ppa;	
 	struct nand_lun *new_lun;
@@ -851,20 +842,20 @@ static uint64_t gc_write_page_hash(struct ssd *ssd, struct ppa *old_ppa, struct 
     uint64_t lpn = get_rmap_ent(ssd, old_ppa);
 	ftl_assert(valid_lpn(ssd, lpn));
 	
-	new_ppa.ppa = 0;
+	new_ppa.ppa = 0;	
 	new_ppa.g.ch = 0;
 	new_ppa.g.lun = 0;
-	new_ppa.g.pg = new_blk->wp;
+	new_ppa.g.pg = (ssd->reserved).wp;
 	new_ppa.g.blk = (ssd->reserved).blk_id;
-	new_ppa.g.pl = 0; 
+	new_ppa.g.pl = 0;
 
 	new_ppa.hid = old_ppa->hid; 
-	new_ppa.ppid = new_blk->wp; 
+	new_ppa.ppid = (ssd->reserved).wp; 
 
 	new_ppa.ppa_hash = ppa2pgidx(ssd, &new_ppa);
 
 	ftl_assert(new_ppa.g.pl == 0);
-	// new_blk->wp++;
+	(ssd->reserved).wp++;
 	
 	/* update maptbl */
     set_maptbl_ent(ssd, lpn, &new_ppa);
@@ -872,14 +863,11 @@ static uint64_t gc_write_page_hash(struct ssd *ssd, struct ppa *old_ppa, struct 
 	/* update rmap */
     set_rmap_ent(ssd, lpn, &new_ppa);
 
-	ssd->hash_OOB[new_ppa.ppa_hash].lpa = lpn;
 	ssd->hash_OOB[old_ppa->ppa_hash].lpa = -1;
+	mark_page_valid(ssd, &new_ppa);
 
-
-    mark_page_valid(ssd, &new_ppa);
-
-    /* need to advance the write pointer here */
-    ssd_advance_block_write_pointer(ssd, &new_ppa);
+    /* need to advance the write pointer here */ 
+	ssd_advance_block_write_pointer(ssd, &new_ppa);
 
     if (ssd->sp.enable_gc_delay) {
         struct nand_cmd gcw;
@@ -891,7 +879,8 @@ static uint64_t gc_write_page_hash(struct ssd *ssd, struct ppa *old_ppa, struct 
 
     new_lun = get_lun(ssd, &new_ppa);
     new_lun->gc_endtime = new_lun->next_lun_avail_time;
-
+			
+	ssd->hash_OOB[ppa2pgidx(ssd, &(new_ppa))].lpa = lpn;
     return 0;
 }
 
@@ -968,38 +957,44 @@ static struct line *select_victim_line(struct ssd *ssd, bool force)
 }
 
 /* here ppa identifies the block we want to clean */
-void clean_one_block(struct ssd *ssd, struct ppa *ppa)
+void clean_one_block(struct ssd *ssd, struct ppa *ppa, uint64_t vba)
 {
     struct ssdparams *spp = &ssd->sp;
     struct nand_page *pg_iter = NULL;
-    int cnt = 0;
-
+    struct ppa old_ppa;
+	int cnt = 0;
+	int lpn = 0; 
+	
     for (int pg = 0; pg < spp->pgs_per_blk; pg++) {
         ppa->g.pg = pg;
         pg_iter = get_pg(ssd, ppa);
         /* there shouldn't be any free page in victim blocks */
         ftl_assert(pg_iter->status != PG_FREE);
-        if (pg_iter->status == PG_VALID) {
+		lpn = get_rmap_ent(ssd, ppa);
+
+		if (pg_iter->status == PG_VALID) {
             gc_read_page(ssd, ppa);
             /* delay the maptbl update until "write" happens */
             if(!HASH_FTL) 
 				gc_write_page(ssd, ppa);
 			else {
-				gc_write_page_hash(ssd, ppa, &(ssd->reserved));
+				old_ppa = get_maptbl_ent(ssd, lpn);
+				
+				ppa->hid = old_ppa.hid;
+				ppa->ppa_hash = old_ppa.ppa_hash; 
+				
+				gc_write_page_hash(ssd, ppa);
 			}
 
-            cnt++;  // valid page copy count 
+			// chk hmb cached info and makr dirty	
+			int hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;	
+			if (hmb_cached(ssd, hmb_cache_entry) == 1) { // mapping mapped to HMB 
+				set_hmb_cache(ssd, hmb_cache_entry, 0); // set HMB cache dirty  
+			}
+            
+			cnt++;  // valid page copy count 
         }
     }
-
-
-	if(HASH_FTL) { 
-		unset_reserved_blk(ssd, &(ssd->reserved));
-		struct nand_block * reserved;
-		reserved = get_blk(ssd, ppa);
-		set_reserved_blk(ssd, reserved); 
-	}
-
 
 	ssd->num_GCcopy = ssd->num_GCcopy + cnt; 
     ftl_assert(get_blk(ssd, ppa)->vpc == cnt);
@@ -1025,8 +1020,6 @@ int do_gc(struct ssd *ssd, bool force)
     
 	int i = 0; 
 
-	//hmb_debug("GC in vics=%d, full %d free=%d",  ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt,	ssd->lm.free_line_cnt);
-
 	victim_line = select_victim_line(ssd, force);
 	if (!victim_line) {
 		return -1;
@@ -1043,7 +1036,6 @@ int do_gc(struct ssd *ssd, bool force)
 		//		victim_line->ipc, ssd->lm.victim_line_cnt, ssd->full_invalid_cnt, ssd->lm.full_line_cnt,
 		//		ssd->lm.free_line_cnt);
 		
-		//hmb_debug(" GC # %u    num_valid_copy: %u\n", ssd->num_GC, ssd->num_GCcopy );
 		/* copy back valid data */
 		for (ch = 0; ch < spp->nchs; ch++) {
 			for (lun = 0; lun < spp->luns_per_ch; lun++) {
@@ -1051,7 +1043,7 @@ int do_gc(struct ssd *ssd, bool force)
 				ppa.g.lun = lun;
 				ppa.g.pl = 0;
 				lunp = get_lun(ssd, &ppa);
-				clean_one_block(ssd, &ppa);
+				clean_one_block(ssd, &ppa, 0);
 				mark_block_free(ssd, &ppa);
 
 				if (spp->enable_gc_delay) {
@@ -1061,7 +1053,6 @@ int do_gc(struct ssd *ssd, bool force)
 					gce.stime = 0;
 					ssd_advance_status(ssd, &ppa, &gce, 0);
 				}
-
 				lunp->gc_endtime = lunp->next_lun_avail_time;
 			}
 		}
@@ -1101,7 +1092,7 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
 
 	// HMB cache 
 	int hmb_cache_entry = 0;
-	int hmb_return = -1;
+	int hmb_return = -10;
 	
 	
     if (end_lpn >= spp->tt_pgs) {
@@ -1121,9 +1112,7 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
 
 		if(HASH_FTL) {
 			if(hash_read(ssd, &ppa, lpn) == -1) { 
-				hmb_debug("[HASH READ ERROR] ... ");
-				//hmb_debug("[HASH READ]  lpn %u   hid: %u   ppid: %u ", lpn,  ppa.hid, ppa.ppid );
-				//hmb_debug("	hash ppa: %u   ppa: %u \n\n", ppa.ppa_hash, ppa2pgidx(ssd, &ppa));		
+				hmb_debug("[HASH READ ERROR] ... ");	
 			}
 		}
 
@@ -1132,31 +1121,32 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
         srd.cmd = NAND_READ;
         srd.stime = req->stime;
 		
-		hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;	
-
 		// chk if lpn is cached to HMB
 		if (hmb_cached(ssd, hmb_cache_entry) == 0) { // not mapped to HMB 
 
 			// not cahced  (rd_lat *2)
 			sublat = ssd_advance_status(ssd, &ppa, &srd, 0);
 			
-			if(HMB_ENTRIES != 0) {	
+			if(HMB_ENTRIES != 0) {
+				hmb_cache_entry = (lpn) / spp->hmb_lpas_per_blk;	
 				hmb_return = ReferencePage(ssd, hmb_cache_entry);
+				
 				// cache the corresponding LPN list to HMB
 				if(ssd->nr_hmb_cache > 0) {
 					ssd->nr_hmb_cache--; 
-					if (hmb_return > -1)
-						hmb_debug("HMB cache meta management is not synced");
+					/*if (hmb_return != hmb_cache_entry)
+					hmb_debug("HMB cache meta management is not synced"); */
+
 				} else {   // lru evict entry and add
-					if(hmb_return == -1)
-						hmb_debug("new HMB caching failed");
+					if(hmb_return < 0)
+						hmb_debug("new HMB caching failed for entry %u ", hmb_cache_entry);
 					else 
 						set_hmb_cache(ssd, hmb_return, 0);
 				}
-
 				set_hmb_cache(ssd, hmb_cache_entry, 1); 
 			}
 		} else {
+			ssd->hmb_read_hit++;
 			sublat = ssd_advance_status(ssd, &ppa, &srd, 1);  // cahced 	
 		}
 		
@@ -1202,6 +1192,7 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 		if (mapped_ppa(&ppa)) {
 			/* update old page information first */
 			mark_page_invalid(ssd, &ppa);
+			ssd->tot_update++;
 			set_rmap_ent(ssd, INVALID_LPN, &ppa);
 
 			// chk hmb cached info and makr dirty	
@@ -1216,10 +1207,8 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 			ppa = get_new_page(ssd);
 		else {
 			ppa = get_new_page_hash(ssd, lpn);
-			// hmb_debug("[HASH WRITE]  lpn %u   hid: %u   ppid: %u ", lpn,  ppa.hid, ppa.ppid );
-			// hmb_debug("lpn:%u	hash ppa: %u  pgidx: %u   ppa: %u\n", lpn, ppa.ppa_hash, ppa2pgidx(ssd, &ppa), ppa.ppa);		
-			
-		}
+			ssd->hash_OOB[ppa2pgidx(ssd, &ppa)].lpa = lpn;
+		}	
 
 		/* update maptbl */
 		set_maptbl_ent(ssd, lpn, &ppa);
@@ -1268,10 +1257,12 @@ static void *ftl_thread(void *arg)
 	while (1) {
 		curr_time = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
 
-		//hmb_debug("cur time: %u", curr_time);
-		if((curr_time % 900000000) == 0) 
-			hmb_debug("TOT GC: %u GC WR: %u TOT WR: %u TOT R: %u", ssd->num_GC, ssd->num_GCcopy, ssd->tot_write, ssd->tot_read);
+		if((curr_time % 900000000) == 0) { 
+			hmb_debug("GC: %u GCW: %u TOT WR: %u TOT UP %u TOT R: %u", ssd->num_GC, ssd->num_GCcopy, ssd->tot_write, ssd->tot_update, ssd->tot_read);
+			hmb_debug("free: %u   full: %u vic: %u inv_vic: %u ", ssd->lm.free_line_cnt, ssd->lm.full_line_cnt, ssd->lm.victim_line_cnt,
+					ssd->full_invalid_cnt);
 
+		}
 
 		for (i = 1; i <= n->num_poller; i++) {
 			if (!ssd->to_ftl[i] || !femu_ring_count(ssd->to_ftl[i]))

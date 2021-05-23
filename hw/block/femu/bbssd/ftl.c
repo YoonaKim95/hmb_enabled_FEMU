@@ -1258,10 +1258,8 @@ static void *ftl_thread(void *arg)
 		curr_time = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
 
 		if((curr_time % 900000000) == 0) { 
-			hmb_debug("GC: %u GCW: %u TOT WR: %u TOT UP %u TOT R: %u", ssd->num_GC, ssd->num_GCcopy, ssd->tot_write, ssd->tot_update, ssd->tot_read);
-			hmb_debug("free: %u   full: %u vic: %u inv_vic: %u ", ssd->lm.free_line_cnt, ssd->lm.full_line_cnt, ssd->lm.victim_line_cnt,
-					ssd->full_invalid_cnt);
-
+			hmb_debug("GC: %u GCW: %u TOT WR: %u TOT UP %u TOT R: %u cache_hit: %u", ssd->num_GC, ssd->num_GCcopy, ssd->tot_write, ssd->tot_update, ssd->tot_read, ssd->hmb_read_hit);
+			//hmb_debug("free: %u   full: %u vic: %u inv_vic: %u ", ssd->lm.free_line_cnt, ssd->lm.full_line_cnt, ssd->lm.victim_line_cnt, ssd->full_invalid_cnt);
 		}
 
 		for (i = 1; i <= n->num_poller; i++) {
@@ -1292,10 +1290,6 @@ static void *ftl_thread(void *arg)
 			if (rc != 1) {
 				ftl_err("FTL to_poller enqueue failed\n");
 			}
-
-
-
-
 
 
 			if(!HASH_FTL) {

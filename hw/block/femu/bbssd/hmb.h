@@ -2,14 +2,15 @@
 #ifndef __SSD__HMB_H__
 #define __SSD__HMB_H__
 
-#define HMB_ENTRIES 0
-//#define HMB_ENTRIES 1024
-//#define HMB_ENTRIES 2048
-//#define HMB_ENTRIES 4096
-//#define HMB_ENTRIES 8192
-//#define HMB_ENTRIES 16384
-//#define HMB_ENTRIES 32768
-//#define HMB_ENTRIES 65536
+//#define HMB_ENTRIES 0
+//#define HMB_ENTRIES 512     // 2MB
+#define HMB_ENTRIES 1024  // 4MB
+//#define HMB_ENTRIES 2048  // 8MB
+//#define HMB_ENTRIES 4096  // 16MB
+//#define HMB_ENTRIES 8192  // 32MB
+//#define HMB_ENTRIES 16384 // 64MB
+//#define HMB_ENTRIES 32768 // 128MB
+//#define HMB_ENTRIES 65536 // 256MB 
 
 
 

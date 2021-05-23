@@ -13,6 +13,7 @@
 #define LEFTROTATE(x, c) (((x) << (c)) | ((x) >> (32 - (c))))
 
 #define HASH_SFT 0
+//#define HASH_SFT 8
 #define HID_BITS 6
 #if(HASH_FTL)
 	#define ADDR_BITS 14
@@ -47,7 +48,7 @@ enum {
 
     NAND_READ_LATENCY = 0,
     NAND_PROG_LATENCY = 0,
-    NAND_ERASE_LATENCY = 0,  */
+    NAND_ERASE_LATENCY = 0, */
 };
 
 enum {

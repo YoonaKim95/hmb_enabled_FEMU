@@ -4,8 +4,8 @@
 
 //#define HMB_ENTRIES 0
 //#define HMB_ENTRIES 512     // 2MB
-#define HMB_ENTRIES 1024  // 4MB
-//#define HMB_ENTRIES 2048  // 8MB
+//#define HMB_ENTRIES 1024  // 4MB
+#define HMB_ENTRIES 2048  // 8MB
 //#define HMB_ENTRIES 4096  // 16MB
 //#define HMB_ENTRIES 8192  // 32MB
 //#define HMB_ENTRIES 16384 // 64MB

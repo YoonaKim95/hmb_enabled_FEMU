@@ -1089,12 +1089,13 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
     uint64_t lpn;	
 	
 	uint64_t sublat = 0 , tot_lat = 0; //maxlat = 0;
+	uint64_t curr_time = 0, end_time = 0, dma_time = 0; // for debugging 
 
 	// HMB cache 
 	int hmb_cache_entry = 0;
 	int hmb_return = -10;
 	
-	
+
     if (end_lpn >= spp->tt_pgs) {
         ftl_err("start_lpn=%"PRIu64", end_lpn=%"PRIu64", tt_pgs=%d\n", start_lpn, end_lpn, ssd->sp.tt_pgs);
     }
@@ -1144,9 +1145,31 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
 						set_hmb_cache(ssd, hmb_return, 0);
 				}
 				set_hmb_cache(ssd, hmb_cache_entry, 1); 
+				
+				// chk dma timing
+				/*HmbEntry new_entry;	
+				curr_time = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
+				hmb_write(HMB_CTRL.list_addr + sizeof(HmbEntry) * 0, &new_entry, sizeof(HmbEntry));
+				end_time = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
+
+				dma_time = end_time - curr_time; 
+				hmb_debug("dma cache write time: %d ", dma_time ); */
+
+
 			}
 		} else {
 			ssd->hmb_read_hit++;
+			
+			// chk dma timing
+			/*
+			HmbEntry new_entry;	
+			curr_time = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
+			hmb_read(HMB_CTRL.list_addr + sizeof(HmbEntry) * 0, &new_entry, sizeof(HmbEntry));
+			end_time = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
+			dma_time = end_time - curr_time; 
+			hmb_debug("dma cache hit read time: %d ", dma_time );
+			*/
+
 			sublat = ssd_advance_status(ssd, &ppa, &srd, 1);  // cahced 	
 		}
 		
